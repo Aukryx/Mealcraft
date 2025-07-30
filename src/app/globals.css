@@ -1,0 +1,30 @@
+@import "tailwindcss";
+@import "@fontsource/press-start-2p/index.css";
+
+:root {
+  --background: var(--pixel-yellow);
+  --foreground: #171717;
+  --pixel-pink: #FFB3BA;
+  --pixel-yellow: #FFF6B7;
+  --pixel-mint: #B6FCD5;
+  --pixel-blue: #B5D8FF;
+  --pixel-orange: #FFD6A5;
+  --pixel-lavender: #E5C7FF;
+  --pixel-white: #FFFFFF;
+  --pixel-lightgray: #F6F6F6;
+  --pixel-dark: #333333;
+}
+
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: "Press Start 2P", cursive;
+  font-size: 13px;
+  letter-spacing: 1px;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: "Press Start 2P", cursive;
+  color: var(--pixel-pink);
+}
