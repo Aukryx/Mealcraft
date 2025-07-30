@@ -64,6 +64,7 @@ export type Recette = {
   tempsCuisson?: number; // en minutes
   image?: string; // url ou nom de sprite
   nutrition?: ValeursNutritionnelles; // total recette (à remplir dans chaque recette)
+  tags: string[]; // régimes compatibles: ex: ['végétarien', 'sans gluten']
 };
 
 export const recettesDeBase: Recette[] = [
@@ -87,6 +88,7 @@ export const recettesDeBase: Recette[] = [
     tempsPreparation: 5,
     tempsCuisson: 5,
     nutrition: { calories: 320, proteines: 18, glucides: 2, lipides: 27 },
+    tags: ['végétarien', 'sans gluten'],
   },
   {
     id: 'pates-tomate',
@@ -111,6 +113,7 @@ export const recettesDeBase: Recette[] = [
     tempsPreparation: 10,
     tempsCuisson: 15,
     nutrition: { calories: 520, proteines: 15, glucides: 100, lipides: 7, fibres: 7 },
+    tags: ['végétarien'],
   },
   {
     id: 'riz-legumes',
@@ -134,6 +137,7 @@ export const recettesDeBase: Recette[] = [
     tempsPreparation: 10,
     tempsCuisson: 15,
     nutrition: { calories: 390, proteines: 7, glucides: 80, lipides: 4, fibres: 5 },
+    tags: ['végétalien', 'végétarien', 'sans gluten'],
   },
   {
     id: 'croque-monsieur',
@@ -153,6 +157,7 @@ export const recettesDeBase: Recette[] = [
     tempsPreparation: 5,
     tempsCuisson: 5,
     nutrition: { calories: 370, proteines: 18, glucides: 32, lipides: 18 },
+    tags: [], // contient jambon, fromage, gluten
   },
   {
     id: 'soupe-legumes',
@@ -175,6 +180,7 @@ export const recettesDeBase: Recette[] = [
     tempsPreparation: 10,
     tempsCuisson: 20,
     nutrition: { calories: 110, proteines: 3, glucides: 22, lipides: 1, fibres: 5 },
+    tags: ['végétalien', 'végétarien', 'sans gluten'],
   },
   {
     id: 'salade-composee',
@@ -197,6 +203,7 @@ export const recettesDeBase: Recette[] = [
     categorie: 'Repas',
     tempsPreparation: 10,
     nutrition: { calories: 180, proteines: 4, glucides: 10, lipides: 13, fibres: 3 },
+    tags: ['végétarien'],
   },
   {
     id: 'gratin-dauphinois',
@@ -219,6 +226,7 @@ export const recettesDeBase: Recette[] = [
     tempsPreparation: 20,
     tempsCuisson: 60,
     nutrition: { calories: 650, proteines: 13, glucides: 110, lipides: 18, fibres: 7 },
+    tags: ['végétarien', 'sans gluten'],
   },
   {
     id: 'gateau-yaourt',
@@ -240,6 +248,7 @@ export const recettesDeBase: Recette[] = [
     tempsPreparation: 10,
     tempsCuisson: 30,
     nutrition: { calories: 320, proteines: 7, glucides: 50, lipides: 10 },
+    tags: ['végétarien'],
   },
   {
     id: 'tartines',
@@ -257,6 +266,7 @@ export const recettesDeBase: Recette[] = [
     categorie: 'Petit-déjeuner',
     tempsPreparation: 2,
     nutrition: { calories: 180, proteines: 4, glucides: 28, lipides: 6 },
+    tags: ['végétarien'],
   },
   {
     id: 'yaourt-fruits',
@@ -276,6 +286,7 @@ export const recettesDeBase: Recette[] = [
     categorie: 'Dessert',
     tempsPreparation: 3,
     nutrition: { calories: 120, proteines: 4, glucides: 20, lipides: 2, fibres: 2 },
+    tags: ['végétarien', 'sans gluten'],
   },
   // Recettes supplémentaires
   {
@@ -302,6 +313,7 @@ export const recettesDeBase: Recette[] = [
     tempsPreparation: 15,
     tempsCuisson: 35,
     nutrition: { calories: 520, proteines: 20, glucides: 32, lipides: 36 },
+    tags: [], // contient lardons, gluten, lactose
   },
   {
     id: 'poelee-campagnarde',
@@ -326,6 +338,7 @@ export const recettesDeBase: Recette[] = [
     tempsPreparation: 15,
     tempsCuisson: 20,
     nutrition: { calories: 410, proteines: 11, glucides: 60, lipides: 13, fibres: 6 },
+    tags: [], // contient lardons
   },
   {
     id: 'crepes',
@@ -348,6 +361,7 @@ export const recettesDeBase: Recette[] = [
     tempsPreparation: 10,
     tempsCuisson: 20,
     nutrition: { calories: 320, proteines: 10, glucides: 48, lipides: 8 },
+    tags: ['végétarien'],
   },
   {
     id: 'taboule',
@@ -372,5 +386,6 @@ export const recettesDeBase: Recette[] = [
     tempsPreparation: 15,
     tempsCuisson: 0,
     nutrition: { calories: 260, proteines: 7, glucides: 48, lipides: 4, fibres: 4 },
+    tags: ['végétarien'],
   },
 ];

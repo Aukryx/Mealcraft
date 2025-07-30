@@ -15,6 +15,7 @@ type Filtres = {
   recherche: string;
   ingredientsDispo: string[];
   difficulte: string | null;
+  regimes: string[];  
 };
 
 const filtresInitiaux: Filtres = {
@@ -25,6 +26,7 @@ const filtresInitiaux: Filtres = {
   recherche: "",
   ingredientsDispo: [],
   difficulte: null,
+  regimes: [],
 };
 
 function useIsMobile(breakpoint = 700) {
@@ -44,6 +46,11 @@ function filtrerRecettes(recettes: Recette[], filtres: Filtres): Recette[] {
     // Filtre par catégorie
     if (filtres.categories.length > 0 && recette.categorie && !filtres.categories.includes(recette.categorie)) {
       return false;
+    }
+
+    if (filtres.regimes.length > 0) {
+      const hasRegime = filtres.regimes.some(regime => recette.tags.includes(regime));
+      if (!hasRegime) return false;
     }
 
     // Filtre par temps de préparation
@@ -102,6 +109,8 @@ export default function RecettesResponsive() {
 
   // Obtenir toutes les catégories uniques
   const categoriesUniques = [...new Set(recettesDeBase.map(r => r.categorie).filter((cat): cat is string => typeof cat === "string"))];
+
+  const regimesUniques = [...new Set(recettesDeBase.flatMap(r => r.tags))].sort();
   
   // Obtenir tous les ingrédients uniques
   const ingredientsUniques = [...new Set(recettesDeBase.flatMap(r => 
@@ -116,6 +125,15 @@ export default function RecettesResponsive() {
         : [...prev.categories, cat]
     }));
   };
+
+  const toggleRegime = (regime: string) => {
+  setFiltres(prev => ({
+    ...prev,
+    regimes: prev.regimes.includes(regime) 
+      ? prev.regimes.filter(r => r !== regime)
+      : [...prev.regimes, regime]
+  }));
+};
 
   const toggleIngredient = (ing: string) => {
     setFiltres(prev => ({
@@ -204,6 +222,31 @@ export default function RecettesResponsive() {
           </div>
         </div>
 
+        {/* Régimes alimentaires */}
+<div>
+  <label style={{ display: "block", marginBottom: "0.5rem", fontWeight: "bold", color: "#3a2d13" }}>
+    Régimes alimentaires :
+  </label>
+  <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem" }}>
+    {regimesUniques.map(regime => (
+      <button
+        key={regime}
+        onClick={() => toggleRegime(regime)}
+        style={{
+          background: filtres.regimes.includes(regime) ? "#bfa76a" : "#e2d7a7",
+          color: filtres.regimes.includes(regime) ? "white" : "#3a2d13",
+          border: "1px solid #bfa76a",
+          borderRadius: 8,
+          padding: "0.3rem 0.8rem",
+          fontSize: "0.8rem",
+          cursor: "pointer"
+        }}
+      >
+        {regime}
+      </button>
+    ))}
+  </div>
+</div>
         {/* Temps de préparation */}
         <div>
           <label style={{ display: "block", marginBottom: "0.5rem", fontWeight: "bold", color: "#3a2d13" }}>
