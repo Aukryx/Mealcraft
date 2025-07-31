@@ -1,0 +1,45 @@
+/* Scrollbar personnalisée */
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: #bfa76a #f8f3d4;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 12px;
+  background: #f8f3d4;
+  border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: #f8f3d4;
+  border-radius: 10px;
+  margin: 5px 0;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #bfa76a 0%, #a68b4a 100%);
+  border-radius: 10px;
+  border: 2px solid #f8f3d4;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #a68b4a 0%, #8b7339 100%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4);
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:active {
+  background: linear-gradient(180deg, #8b7339 0%, #6b5a2d 100%);
+}
+
+.custom-scrollbar::-webkit-scrollbar-corner {
+  background: #f8f3d4;
+}
+
+/* Pour Firefox uniquement */
+@supports (scrollbar-width: thin) {
+  .custom-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: #bfa76a #f8f3d4;
+  }
+}

@@ -1,10 +1,17 @@
 import React, { useState, useEffect } from "react";
-import { recettesDeBase, Recette } from "../data/recettesDeBase";
+import { Recette } from "../data/recettesDeBase";
 
 const RECETTES_PAR_PAGE_DESKTOP = 9;
 const RECETTES_GAUCHE = 5;
 const RECETTES_DROITE = 4;
 const RECETTES_PAR_PAGE_MOBILE = 5;
+
+type RecettesResponsiveProps = {
+  recettes: Recette[];
+  onEdit: (recette: Recette) => void;
+  onDelete: (id: string) => void;
+  onAdd: () => void;
+};
 
 // Types pour les filtres
 type Filtres = {
@@ -84,7 +91,7 @@ function filtrerRecettes(recettes: Recette[], filtres: Filtres): Recette[] {
   });
 }
 
-export default function RecettesResponsive() {
+export default function RecettesResponsive({ recettes, onEdit, onDelete, onAdd }: RecettesResponsiveProps) {
   const isMobile = useIsMobile();
   const [page, setPage] = useState(0);
   const [selectedRecette, setSelectedRecette] = useState<Recette | null>(null);
@@ -92,7 +99,7 @@ export default function RecettesResponsive() {
   const [showFilters, setShowFilters] = useState(false);
 
   // Appliquer les filtres
-  const recettesFiltrees = filtrerRecettes(recettesDeBase, filtres);
+  const recettesFiltrees = filtrerRecettes(recettes, filtres);
 
   // Pagination
   const recettesParPage = isMobile ? RECETTES_PAR_PAGE_MOBILE : RECETTES_PAR_PAGE_DESKTOP;
@@ -108,12 +115,12 @@ export default function RecettesResponsive() {
   }, [filtres]);
 
   // Obtenir toutes les catégories uniques
-  const categoriesUniques = [...new Set(recettesDeBase.map(r => r.categorie).filter((cat): cat is string => typeof cat === "string"))];
+  const categoriesUniques = [...new Set(recettes.map(r => r.categorie).filter((cat): cat is string => typeof cat === "string"))];
 
-  const regimesUniques = [...new Set(recettesDeBase.flatMap(r => r.tags))].sort();
+  const regimesUniques = [...new Set(recettes.flatMap(r => r.tags))].sort();
   
   // Obtenir tous les ingrédients uniques
-  const ingredientsUniques = [...new Set(recettesDeBase.flatMap(r => 
+  const ingredientsUniques = [...new Set(recettes.flatMap(r => 
     r.ingredients.map(ing => ing.ingredientId)
   ))].sort();
 
@@ -411,7 +418,50 @@ export default function RecettesResponsive() {
             </div>
           ) : (
             recettesPage.map((recette) => (
-              <div key={recette.id} style={{ marginBottom: "2.2rem" }}>
+              <div key={recette.id} style={{ marginBottom: "2.2rem", position: "relative" }}>
+                {/* Edit/Delete icons */}
+                <div
+                  style={{ position: "absolute", top: 2, right: 2, display: "flex", gap: 4 }}
+                  className="recette-icons"
+                >
+                  <button
+                    onClick={e => { e.stopPropagation(); onEdit(recette); }}
+                    title="Modifier"
+                    style={{
+                      background: "none",
+                      border: "none",
+                      opacity: 0.18,
+                      cursor: "pointer",
+                      padding: 2,
+                      margin: 0,
+                      transition: 'opacity 0.2s',
+                    }}
+                    onMouseEnter={e => (e.currentTarget.style.opacity = '1')}
+                    onMouseLeave={e => (e.currentTarget.style.opacity = '0.18')}
+                  >
+                    <span role="img" aria-label="edit" style={{ fontSize: 18, filter: 'drop-shadow(0 0 2px #fff) drop-shadow(0 0 4px #28a745)' }}>✏️</span>
+                  </button>
+                  <button
+                    onClick={e => {
+                      e.stopPropagation();
+                      if (window.confirm('Supprimer cette recette ?')) onDelete(recette.id);
+                    }}
+                    title="Supprimer"
+                    style={{
+                      background: "none",
+                      border: "none",
+                      opacity: 0.18,
+                      cursor: "pointer",
+                      padding: 2,
+                      margin: 0,
+                      transition: 'opacity 0.2s',
+                    }}
+                    onMouseEnter={e => (e.currentTarget.style.opacity = '1')}
+                    onMouseLeave={e => (e.currentTarget.style.opacity = '0.18')}
+                  >
+                    <span role="img" aria-label="delete" style={{ fontSize: 18, filter: 'drop-shadow(0 0 2px #fff) drop-shadow(0 0 4px #dc3545)' }}>🗑️</span>
+                  </button>
+                </div>
                 <div
                   style={{
                     fontWeight: "bold",
@@ -607,7 +657,7 @@ export default function RecettesResponsive() {
               {recettesPage.slice(0, RECETTES_GAUCHE).map((recette, idx) => (
                 <div
                   key={recette.id}
-                  style={{ marginBottom: idx < RECETTES_GAUCHE - 1 ? "2.7rem" : 0, cursor: "pointer" }}
+                  style={{ marginBottom: idx < RECETTES_GAUCHE - 1 ? "2.7rem" : 0, cursor: "pointer", position: "relative" }}
                   onClick={() => setSelectedRecette(recette)}
                   tabIndex={0}
                   role="button"
@@ -622,6 +672,37 @@ export default function RecettesResponsive() {
                     if (title) (title as HTMLElement).style.color = '#3a2d13';
                   }}
                 >
+                  {/* Edit/Delete icons */}
+                  <div style={{ position: "absolute", top: 2, right: 2, display: "flex", gap: 4 }}>
+                    <button
+                      onClick={e => { e.stopPropagation(); onEdit(recette); }}
+                      title="Modifier"
+                      style={{
+                        background: "none",
+                        border: "none",
+                        opacity: 0.18,
+                        cursor: "pointer",
+                        padding: 2,
+                        margin: 0,
+                      }}
+                    >
+                      <span role="img" aria-label="edit" style={{ fontSize: 18 }}>✏️</span>
+                    </button>
+                    <button
+                      onClick={e => { e.stopPropagation(); onDelete(recette.id); }}
+                      title="Supprimer"
+                      style={{
+                        background: "none",
+                        border: "none",
+                        opacity: 0.18,
+                        cursor: "pointer",
+                        padding: 2,
+                        margin: 0,
+                      }}
+                    >
+                      <span role="img" aria-label="delete" style={{ fontSize: 18 }}>🗑️</span>
+                    </button>
+                  </div>
                   <div
                     className="recette-title"
                     style={{
@@ -665,7 +746,7 @@ export default function RecettesResponsive() {
               {recettesPage.slice(RECETTES_GAUCHE, RECETTES_PAR_PAGE_DESKTOP).map((recette, idx) => (
                 <div
                   key={recette.id}
-                  style={{ marginBottom: idx < RECETTES_DROITE - 1 ? "2.7rem" : 0, cursor: "pointer" }}
+                  style={{ marginBottom: idx < RECETTES_DROITE - 1 ? "2.7rem" : 0, cursor: "pointer", position: "relative" }}
                   onClick={() => setSelectedRecette(recette)}
                   tabIndex={0}
                   role="button"
@@ -680,6 +761,37 @@ export default function RecettesResponsive() {
                     if (title) (title as HTMLElement).style.color = '#3a2d13';
                   }}
                 >
+                  {/* Edit/Delete icons */}
+                  <div style={{ position: "absolute", top: 2, right: 2, display: "flex", gap: 4 }}>
+                    <button
+                      onClick={e => { e.stopPropagation(); onEdit(recette); }}
+                      title="Modifier"
+                      style={{
+                        background: "none",
+                        border: "none",
+                        opacity: 0.18,
+                        cursor: "pointer",
+                        padding: 2,
+                        margin: 0,
+                      }}
+                    >
+                      <span role="img" aria-label="edit" style={{ fontSize: 18 }}>✏️</span>
+                    </button>
+                    <button
+                      onClick={e => { e.stopPropagation(); onDelete(recette.id); }}
+                      title="Supprimer"
+                      style={{
+                        background: "none",
+                        border: "none",
+                        opacity: 0.18,
+                        cursor: "pointer",
+                        padding: 2,
+                        margin: 0,
+                      }}
+                    >
+                      <span role="img" aria-label="delete" style={{ fontSize: 18 }}>🗑️</span>
+                    </button>
+                  </div>
                   <div
                     className="recette-title"
                     style={{
@@ -722,6 +834,7 @@ export default function RecettesResponsive() {
                 width: "calc(100% - 80px)" 
               }}>
                 <button
+                  onClick={onAdd}
                   style={{
                     background: "#e2d7a7",
                     color: "#3a2d13",
