@@ -1,32 +1,36 @@
 "use client"
 
 import React, { useState } from 'react';
-import { Ingredient } from '../data/recettesDeBase';
-
-
-
-import KitchenObject from '../components/KitchenObject';
-import KitchenInstructions from '../components/KitchenInstructions';
-import type { MouseEvent } from 'react';
-
-
-import DayDetailModal from '../components/immersive/DayDetailModal';
+import CookBook from '../components/immersive/CookBook';
 import CalendarWall from '../components/immersive/CalendarWall';
 import FridgePantryModal from '../components/immersive/FridgePantryModal';
-import CookBook from '../components/immersive/CookBook';
+import DayDetailModal from '../components/immersive/DayDetailModal';
+import KitchenObject from '../components/KitchenObject';
+import KitchenInstructions from '../components/KitchenInstructions';
+import OnboardingFlow from '../components/OnboardingFlow';
+import UserProfileModal from '../components/UserProfileModal';
+import { categoriesRefrigerees, categoriesNonRefrigerees } from '../data/kitchenMeta';
+import { useUserProfile } from '../hooks/useUserProfile';
+import { useStock } from '../hooks/useStock';
+import { useGlobalShortcuts } from '../hooks/useKeyboardShortcuts';
 
 // Types d'objets interactifs
 type InteractiveObject = 'calendar' | 'cookbook' | 'fridge' | 'pantry' | null;
-
-
-import { categoriesRefrigerees, categoriesNonRefrigerees } from '../data/kitchenMeta';
 
 // Modale Frigo/Placard avec onglets
 
 export default function Home() {
   const [activeObject, setActiveObject] = useState<InteractiveObject>(null);
-  const [stock, setStock] = useState<Ingredient[]>([]);
   const [selectedDay, setSelectedDay] = useState<number | null>(null);
+  const [showProfile, setShowProfile] = useState(false);
+  
+  // Gestion du profil utilisateur
+  const { profile, isFirstTime, loading, createProfile, resetProfile, updatePreferences } = useUserProfile();
+  const { stock, setStock } = useStock();
+  
+  // Raccourcis clavier globaux
+  useGlobalShortcuts(setActiveObject);
+  
   // Simulation du planning
   const [planning, setPlanning] = useState<{ [day: number]: { lunch?: string; dinner?: string } }>({});
 
@@ -34,6 +38,37 @@ export default function Home() {
   const today = new Date();
   const currentMonth = today.getMonth();
   const currentYear = today.getFullYear();
+
+  // Chargement initial
+  if (loading) {
+    return (
+      <div style={{
+        width: '100vw',
+        height: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        background: 'linear-gradient(135deg, #FFF6B7, #FFD6A5)',
+        fontFamily: 'Press Start 2P, cursive'
+      }}>
+        <div style={{ textAlign: 'center' }}>
+          <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🍳</div>
+          <div style={{ fontSize: '1rem', color: '#8b4513' }}>MealCraft</div>
+          <div style={{ fontSize: '0.7rem', color: '#666', marginTop: '1rem' }}>Chargement...</div>
+        </div>
+      </div>
+    );
+  }
+
+  // Première visite : onboarding
+  if (isFirstTime) {
+    return (
+      <OnboardingFlow
+        onProfileCreated={() => window.location.reload()}
+        onCreateProfile={createProfile}
+      />
+    );
+  }
 
 
 
@@ -58,6 +93,43 @@ export default function Home() {
       
       {/* Interface principale avec objets interactifs */}
       <div style={{ position: 'relative', zIndex: 2, width: '100%', height: '100%' }}>
+        
+        {/* Indicateur de profil utilisateur */}
+        {profile && (
+          <div
+            onClick={() => setShowProfile(true)}
+            style={{
+              position: 'absolute',
+              top: '20px',
+              right: '20px',
+              background: 'rgba(45, 55, 72, 0.9)',
+              border: '2px solid rgba(255, 255, 255, 0.2)',
+              borderRadius: '12px',
+              padding: '0.75rem 1rem',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              cursor: 'pointer',
+              fontSize: '0.7rem',
+              fontFamily: 'Press Start 2P, cursive',
+              color: '#e2e8f0',
+              boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+              transition: 'all 0.2s',
+              zIndex: 10
+            }}
+            onMouseOver={e => e.currentTarget.style.transform = 'translateY(-2px)'}
+            onMouseOut={e => e.currentTarget.style.transform = 'translateY(0)'}
+          >
+            <span style={{ fontSize: '1.2rem' }}>👤</span>
+            <div>
+              <div style={{ color: '#ffd93d' }}>{profile.nom}</div>
+              <div style={{ fontSize: '0.5rem', opacity: 0.8 }}>
+                {profile.preferences.portionsParDefaut} portions
+              </div>
+            </div>
+          </div>
+        )}
+        
         {/* Objets interactifs */}
         <KitchenObject
           icon={<div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>📅</div>}
@@ -178,6 +250,34 @@ export default function Home() {
         
         {/* Instructions d'utilisation */}
         <KitchenInstructions />
+        
+        {/* Bouton de debug pour réinitialiser (développement seulement) */}
+        {process.env.NODE_ENV === 'development' && (
+          <button
+            onClick={() => {
+              if (window.confirm('Réinitialiser toutes les données ? (pour tester l\'onboarding)')) {
+                resetProfile();
+                window.location.reload();
+              }
+            }}
+            style={{
+              position: 'fixed',
+              bottom: '10px',
+              right: '10px',
+              background: '#ff4444',
+              color: 'white',
+              border: 'none',
+              borderRadius: '8px',
+              padding: '0.5rem',
+              fontSize: '0.7rem',
+              cursor: 'pointer',
+              zIndex: 1000,
+              opacity: 0.7
+            }}
+          >
+            🗑️ Reset DB
+          </button>
+        )}
       </div>
       
       {/* Modales des objets interactifs */}
@@ -200,6 +300,16 @@ export default function Home() {
           currentMonth={currentMonth}
           planning={planning}
           onClose={() => setSelectedDay(null)}
+        />
+      )}
+
+      {/* Modal profil utilisateur */}
+      {showProfile && profile && (
+        <UserProfileModal
+          profile={profile}
+          onClose={() => setShowProfile(false)}
+          onUpdatePreferences={updatePreferences}
+          onResetProfile={resetProfile}
         />
       )}
     </div>

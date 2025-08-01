@@ -15,16 +15,126 @@
   --pixel-dark: #333333;
 }
 
-
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: "Press Start 2P", cursive;
   font-size: 13px;
   letter-spacing: 1px;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
 }
 
 h1, h2, h3, h4, h5, h6 {
   font-family: "Press Start 2P", cursive;
   color: var(--pixel-pink);
+}
+
+/* Responsive pour mobile */
+@media (max-width: 768px) {
+  body {
+    font-size: 11px;
+    letter-spacing: 0.5px;
+  }
+  
+  h1 { font-size: 1rem; }
+  h2 { font-size: 0.9rem; }
+  h3 { font-size: 0.8rem; }
+}
+
+/* Responsive pour tablette en portrait */
+@media (min-width: 769px) and (max-width: 1024px) and (orientation: portrait) {
+  body {
+    font-size: 12px;
+  }
+  
+  /* Adaptation spéciale pour les tablettes en mode portrait */
+  .kitchen-container {
+    padding: 2rem 1rem;
+  }
+  
+  .modal-content {
+    max-width: 90vw;
+    max-height: 90vh;
+  }
+}
+
+/* Style pour les boutons tactiles */
+@media (hover: none) and (pointer: coarse) {
+  button, .clickable {
+    min-height: 44px;
+    min-width: 44px;
+    padding: 1rem;
+  }
+}
+
+/* Animations optimisées mobile */
+@media (prefers-reduced-motion: no-preference) {
+  .kitchen-object {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+  
+  .kitchen-object:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+  }
+}
+
+/* Réduction des animations sur mobile pour les performances */
+@media (max-width: 768px) {
+  * {
+    animation-duration: 0.2s !important;
+    transition-duration: 0.2s !important;
+  }
+}
+
+/* Accessibilité */
+@media (prefers-contrast: high) {
+  :root {
+    --pixel-yellow: #FFFF00;
+    --pixel-pink: #FF0080;
+    --pixel-mint: #00FF80;
+    --foreground: #000000;
+  }
+}
+
+/* Mode focus visible pour navigation clavier */
+*:focus-visible {
+  outline: 3px solid var(--pixel-mint);
+  outline-offset: 2px;
+}
+
+/* Styles pour les modales responsives */
+.modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0,0,0,0.8);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.modal-content {
+  background: white;
+  border-radius: 16px;
+  padding: 2rem;
+  width: 100%;
+  max-width: 500px;
+  max-height: 90vh;
+  overflow-y: auto;
+  font-family: 'Press Start 2P', cursive;
+}
+
+@media (max-width: 768px) {
+  .modal-content {
+    padding: 1rem;
+    border-radius: 12px;
+    max-height: 95vh;
+  }
 }

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { ingredientsDeBase, Ingredient } from "../../data/recettesDeBase";
+import { SmartQuantityEditor } from "../SmartQuantityEditor";
 
 const categoriesRefrigerees = ["produit laitier", "viande", "poisson"];
 const categoriesNonRefrigerees = ["légume", "fruit", "féculent", "épice", "autre"];
@@ -49,18 +50,17 @@ export default function FridgePantryModal({ initialTab, onClose, stock, onStockC
     !stock.find((s: Ingredient) => s.id === i.id)
   );
   const handleAddIngredient = (ingredient: Ingredient) => {
-    const newStock = stock.find(i => i.id === ingredient.id)
-      ? stock
-      : [...stock, { ...ingredient, quantite: 1 }];
-    onStockChange(newStock);
+    // Empêche l'ajout de doublons (même id)
+    if (stock.some(i => i.id === ingredient.id)) return;
+    onStockChange([...stock, { ...ingredient, quantite: 1 }]);
   };
   const handleRemove = (id: string) => {
     const newStock = stock.filter(i => i.id !== id);
     onStockChange(newStock);
   };
-  const handleChangeQuantite = (id: string, delta: number) => {
+  const handleChangeQuantite = (id: string, newQuantity: number) => {
     const newStock = stock.map(i =>
-      i.id === id ? { ...i, quantite: Math.max(1, (i.quantite || 1) + delta) } : i
+      i.id === id ? { ...i, quantite: Math.max(0, newQuantity) } : i
     );
     onStockChange(newStock);
   };
@@ -153,15 +153,42 @@ export default function FridgePantryModal({ initialTab, onClose, stock, onStockC
         ) : (
           <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexWrap: 'wrap', gap: 16, justifyContent: 'center' }}>
             {stockFiltre.map((ing: Ingredient) => (
-              <li key={ing.id} style={{ background: categorieCouleurs[ing.categorie], borderRadius: 12, padding: '1.1rem 1.5rem', minWidth: 120, boxShadow: '2px 2px 0 #bfa76a', display: 'flex', flexDirection: 'column', alignItems: 'center', position: 'relative' }}>
-                <span style={{ fontSize: 32, marginBottom: 6 }}>{categorieEmojis[ing.categorie]}</span>
-                <span style={{ fontWeight: 'bold', color: '#333', marginBottom: 4 }}>{ing.nom}</span>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
-                  <button onClick={() => handleChangeQuantite(ing.id, -1)} style={{ fontSize: 18, border: 'none', background: '#fff', borderRadius: 6, cursor: 'pointer', width: 28, height: 28, fontWeight: 700 }}>-</button>
-                  <span style={{ fontFamily: 'Press Start 2P, cursive', fontSize: 15 }}>{ing.quantite || 1} {ing.unite || ''}</span>
-                  <button onClick={() => handleChangeQuantite(ing.id, 1)} style={{ fontSize: 18, border: 'none', background: '#fff', borderRadius: 6, cursor: 'pointer', width: 28, height: 28, fontWeight: 700 }}>+</button>
-                </div>
-                <button onClick={() => handleRemove(ing.id)} style={{ position: 'absolute', top: 8, right: 8, background: 'none', border: 'none', color: '#c0392b', fontSize: 20, cursor: 'pointer' }} title="Retirer">×</button>
+              <li key={ing.id} style={{ 
+                background: categorieCouleurs[ing.categorie], 
+                borderRadius: 12, 
+                padding: '1rem', 
+                minWidth: 200, 
+                boxShadow: '2px 2px 0 #bfa76a', 
+                display: 'flex', 
+                flexDirection: 'column', 
+                alignItems: 'center', 
+                position: 'relative',
+                gap: '0.5rem'
+              }}>
+                <span style={{ fontSize: 32 }}>{categorieEmojis[ing.categorie]}</span>
+                <span style={{ fontWeight: 'bold', color: '#333', marginBottom: 4, textAlign: 'center' }}>{ing.nom}</span>
+                
+                <SmartQuantityEditor
+                  quantity={ing.quantite || 1}
+                  unit={ing.unite || 'pièce'}
+                  onQuantityChange={(newQuantity) => handleChangeQuantite(ing.id, newQuantity)}
+                  className="ingredient-quantity-editor"
+                />
+                
+                <button 
+                  onClick={() => handleRemove(ing.id)} 
+                  style={{ 
+                    position: 'absolute', 
+                    top: 8, 
+                    right: 8, 
+                    background: 'none', 
+                    border: 'none', 
+                    color: '#c0392b', 
+                    fontSize: 20, 
+                    cursor: 'pointer' 
+                  }} 
+                  title="Retirer"
+                >×</button>
               </li>
             ))}
           </ul>

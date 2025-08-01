@@ -19,7 +19,6 @@ export default function CookBook({ onClose }: Props) {
     // Champs principaux
     const [nom, setNom] = useState(initial?.nom || "");
     const [categorie, setCategorie] = useState(initial?.categorie || "");
-    const [image, setImage] = useState(initial?.image || "");
     const [tags, setTags] = useState(initial?.tags?.join(", ") || "");
     const [tempsPreparation, setTempsPreparation] = useState(initial?.tempsPreparation?.toString() || "");
     const [tempsCuisson, setTempsCuisson] = useState(initial?.tempsCuisson?.toString() || "");
@@ -30,8 +29,6 @@ export default function CookBook({ onClose }: Props) {
     const [ingredientsOptionnels, setIngredientsOptionnels] = useState(initial?.ingredientsOptionnels || []);
     // Étapes
     const [etapes, setEtapes] = useState(initial?.etapes || [""]);
-    // Instructions (texte libre)
-    const [instructions, setInstructions] = useState(initial?.instructions || "");
     // Nutrition
     const [calories, setCalories] = useState(initial?.nutrition?.calories?.toString() || "");
     const [proteines, setProteines] = useState(initial?.nutrition?.proteines?.toString() || "");
@@ -82,7 +79,7 @@ export default function CookBook({ onClose }: Props) {
     ];
     const TAGS = [
       "végétarien",
-      "vegan",
+      "végétalien",
       "sans gluten",
       "rapide",
       "économique",
@@ -114,6 +111,27 @@ export default function CookBook({ onClose }: Props) {
       fontSize: 15,
       marginBottom: 8,
       fontFamily: 'inherit'
+    };
+
+    // Gestion des erreurs de validation
+    const [formError, setFormError] = useState<string | null>(null);
+
+    // Validation stricte avant enregistrement
+    const validateForm = () => {
+      if (!nom.trim()) return "Le nom de la recette est obligatoire.";
+      if (!categorie.trim()) return "La catégorie est obligatoire.";
+      if (ingredients.length === 0 || ingredients.some(ing => !ing.ingredientId.trim())) return "Au moins un ingrédient principal valide est requis.";
+      if (ingredients.some(ing => Number(ing.quantite) <= 0)) return "Les quantités d'ingrédients doivent être strictement positives.";
+      if (ingredients.some(ing => Number(ing.quantite) < 0)) return "Aucune quantité ne peut être négative.";
+      if (etapes.length === 0 || etapes.every(e => !e.trim())) return "Au moins une étape est requise.";
+      if (tempsPreparation && Number(tempsPreparation) < 0) return "Le temps de préparation ne peut pas être négatif.";
+      if (tempsCuisson && Number(tempsCuisson) < 0) return "Le temps de cuisson ne peut pas être négatif.";
+      if (calories && Number(calories) < 0) return "Les calories ne peuvent pas être négatives.";
+      if (proteines && Number(proteines) < 0) return "Les protéines ne peuvent pas être négatives.";
+      if (glucides && Number(glucides) < 0) return "Les glucides ne peuvent pas être négatifs.";
+      if (lipides && Number(lipides) < 0) return "Les lipides ne peuvent pas être négatifs.";
+      if (fibres && fibres !== '' && Number(fibres) < 0) return "Les fibres ne peuvent pas être négatives.";
+      return null;
     };
 
     return (
@@ -170,11 +188,16 @@ export default function CookBook({ onClose }: Props) {
           data-recipe-form="true"
           onSubmit={e => {
             e.preventDefault();
+            const error = validateForm();
+            if (error) {
+              setFormError(error);
+              return;
+            }
+            setFormError(null);
             onSave({
               id: initial?.id || Date.now().toString(),
               nom,
               categorie,
-              image,
               tags: selectedTags,
               tempsPreparation: tempsPreparation ? parseInt(tempsPreparation) : undefined,
               tempsCuisson: tempsCuisson ? parseInt(tempsCuisson) : undefined,
@@ -189,13 +212,12 @@ export default function CookBook({ onClose }: Props) {
                 unite: ing.unite
               })),
               etapes: etapes.filter(e => e.trim() !== ""),
-              instructions,
-              nutrition: calories || proteines || glucides || lipides || fibres ? {
-                calories: Number(calories) || 0,
-                proteines: Number(proteines) || 0,
-                glucides: Number(glucides) || 0,
-                lipides: Number(lipides) || 0,
-                fibres: fibres ? Number(fibres) : undefined,
+              nutrition: ([calories, proteines, glucides, lipides].every(v => v !== '' && !isNaN(Number(v)))) ? {
+                calories: Number(calories),
+                proteines: Number(proteines),
+                glucides: Number(glucides),
+                lipides: Number(lipides),
+                ...(fibres !== '' && !isNaN(Number(fibres)) ? { fibres: Number(fibres) } : {})
               } : undefined,
             });
           }}
@@ -210,6 +232,9 @@ export default function CookBook({ onClose }: Props) {
             flex: 1
           }}
         >
+          {formError && (
+            <div style={{ color: '#dc3545', fontWeight: 700, marginBottom: 12, fontSize: 15, textAlign: 'center' }}>{formError}</div>
+          )}
           <h3 style={{ marginBottom: 28, color: '#bfa76a', fontWeight: 700, letterSpacing: 1, fontSize: 22, textAlign: 'center' }}>
             {initial ? "Modifier" : "Ajouter"} une recette
           </h3>
@@ -227,19 +252,10 @@ export default function CookBook({ onClose }: Props) {
               <select 
                 value={categorie} 
                 onChange={e => { setCategorie(e.target.value); markDirty(); }} 
-                style={inputStyle}
               >
                 <option value="">Choisir une catégorie</option>
                 {CATEGORIES.map(cat => <option key={cat} value={cat}>{cat}</option>)}
               </select>
-            </label>
-            <label style={{ fontWeight: 700, fontSize: 16 }}>Image (URL ou nom)
-              <input 
-                value={image} 
-                onChange={e => { setImage(e.target.value); markDirty(); }} 
-                placeholder="Image" 
-                style={inputStyle} 
-              />
             </label>
             <label style={{ fontWeight: 700, fontSize: 16 }}>Tags
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 8 }}>
@@ -279,14 +295,6 @@ export default function CookBook({ onClose }: Props) {
                 value={tempsCuisson} 
                 onChange={e => { setTempsCuisson(e.target.value); markDirty(); }} 
                 style={inputStyle} 
-              />
-            </label>
-            <label style={{ fontWeight: 700, fontSize: 16 }}>Instructions (texte libre)
-              <textarea 
-                value={instructions} 
-                onChange={e => { setInstructions(e.target.value); markDirty(); }} 
-                placeholder="Instructions générales..." 
-                style={{ ...inputStyle, minHeight: 60 }} 
               />
             </label>
             <label style={{ fontWeight: 700, fontSize: 16 }}>Valeurs nutritionnelles (par portion)

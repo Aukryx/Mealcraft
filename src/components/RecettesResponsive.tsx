@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { Recette } from "../data/recettesDeBase";
+import StockSummary from "./StockSummary";
+import { useStock } from "../hooks/useStock";
+import { CozyCookingMode } from "./CozyCookingMode";
 
 const RECETTES_PAR_PAGE_DESKTOP = 9;
 const RECETTES_GAUCHE = 5;
@@ -20,7 +23,7 @@ type Filtres = {
   tempsMaxCuisson: number | null;
   caloriesMax: number | null;
   recherche: string;
-  ingredientsDispo: string[];
+  showOnlyFeasible: boolean; // Remplace ingredientsDispo
   difficulte: string | null;
   regimes: string[];  
 };
@@ -31,7 +34,7 @@ const filtresInitiaux: Filtres = {
   tempsMaxCuisson: null,
   caloriesMax: null,
   recherche: "",
-  ingredientsDispo: [],
+  showOnlyFeasible: false, // Par défaut, montrer toutes les recettes
   difficulte: null,
   regimes: [],
 };
@@ -48,16 +51,11 @@ function useIsMobile(breakpoint = 700) {
 }
 
 // Fonction pour filtrer les recettes
-function filtrerRecettes(recettes: Recette[], filtres: Filtres): Recette[] {
+function filtrerRecettes(recettes: Recette[], filtres: Filtres, stock: Array<{ id: string; quantite?: number }>): Recette[] {
   return recettes.filter(recette => {
     // Filtre par catégorie
-    if (filtres.categories.length > 0 && recette.categorie && !filtres.categories.includes(recette.categorie)) {
+    if (filtres.categories.length > 0 && !filtres.categories.includes(recette.categorie || "")) {
       return false;
-    }
-
-    if (filtres.regimes.length > 0) {
-      const hasRegime = filtres.regimes.some(regime => recette.tags.includes(regime));
-      if (!hasRegime) return false;
     }
 
     // Filtre par temps de préparation
@@ -80,11 +78,13 @@ function filtrerRecettes(recettes: Recette[], filtres: Filtres): Recette[] {
       return false;
     }
 
-    // Filtre par ingrédients disponibles
-    if (filtres.ingredientsDispo.length > 0) {
-      const ingredientsRecette = recette.ingredients.map(ing => ing.ingredientId);
-      const hasIngredients = filtres.ingredientsDispo.some(ing => ingredientsRecette.includes(ing));
-      if (!hasIngredients) return false;
+    // Filtre "Recettes faisables seulement"
+    if (filtres.showOnlyFeasible) {
+      const recetteRealisable = recette.ingredients.every(ingredient => {
+        const stockItem = stock.find(s => s.id === ingredient.ingredientId);
+        return stockItem && stockItem.quantite && stockItem.quantite >= ingredient.quantite;
+      });
+      if (!recetteRealisable) return false;
     }
 
     return true;
@@ -97,9 +97,11 @@ export default function RecettesResponsive({ recettes, onEdit, onDelete, onAdd }
   const [selectedRecette, setSelectedRecette] = useState<Recette | null>(null);
   const [filtres, setFiltres] = useState<Filtres>(filtresInitiaux);
   const [showFilters, setShowFilters] = useState(false);
+  const [cookingRecipe, setCookingRecipe] = useState<Recette | null>(null);
+  const { stock } = useStock(); // Utilisation du hook stock
 
   // Appliquer les filtres
-  const recettesFiltrees = filtrerRecettes(recettes, filtres);
+  const recettesFiltrees = filtrerRecettes(recettes, filtres, stock);
 
   // Pagination
   const recettesParPage = isMobile ? RECETTES_PAR_PAGE_MOBILE : RECETTES_PAR_PAGE_DESKTOP;
@@ -141,15 +143,6 @@ export default function RecettesResponsive({ recettes, onEdit, onDelete, onAdd }
       : [...prev.regimes, regime]
   }));
 };
-
-  const toggleIngredient = (ing: string) => {
-    setFiltres(prev => ({
-      ...prev,
-      ingredientsDispo: prev.ingredientsDispo.includes(ing)
-        ? prev.ingredientsDispo.filter(i => i !== ing)
-        : [...prev.ingredientsDispo, ing]
-    }));
-  };
 
   const resetFiltres = () => {
     setFiltres(filtresInitiaux);
@@ -325,34 +318,16 @@ export default function RecettesResponsive({ recettes, onEdit, onDelete, onAdd }
           </select>
         </div>
 
-        {/* Ingrédients disponibles */}
-        <div style={{ gridColumn: isMobile ? "1" : "1 / -1" }}>
-          <label style={{ display: "block", marginBottom: "0.5rem", fontWeight: "bold", color: "#3a2d13" }}>
-            Ingrédients que j'ai :
-          </label>
-          <div style={{ 
-            maxHeight: "120px", overflowY: "auto", 
-            display: "flex", flexWrap: "wrap", gap: "0.3rem",
-            padding: "0.5rem", border: "1px solid #bfa76a", borderRadius: 8, background: "white"
-          }}>
-            {ingredientsUniques.slice(0, 20).map(ing => ( // Limite pour l'exemple
-              <button
-                key={ing}
-                onClick={() => toggleIngredient(ing)}
-                style={{
-                  background: filtres.ingredientsDispo.includes(ing) ? "#bfa76a" : "#f0f0f0",
-                  color: filtres.ingredientsDispo.includes(ing) ? "white" : "#333",
-                  border: "1px solid #ddd",
-                  borderRadius: 6,
-                  padding: "0.2rem 0.6rem",
-                  fontSize: "0.7rem",
-                  cursor: "pointer"
-                }}
-              >
-                {ing}
-              </button>
-            ))}
-          </div>
+        {/* Composant de résumé du stock avec filtrage */}
+        <div style={{ gridColumn: "1 / -1" }}>
+          <StockSummary 
+            onFilterChange={(showOnlyFeasible) => {
+              setFiltres(prev => ({
+                ...prev,
+                showOnlyFeasible
+              }));
+            }}
+          />
         </div>
       </div>
 
@@ -564,15 +539,21 @@ export default function RecettesResponsive({ recettes, onEdit, onDelete, onAdd }
 
   // Affichage desktop (livre)
   return (
-    <div
-      style={{
-        width: "100%",
-        minHeight: "100vh",
-        margin: 0,
-        padding: 0,
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
+    <>
+      <style jsx>{`
+        .recette-card:hover .cozy-cook-btn {
+          opacity: 1 !important;
+        }
+      `}</style>
+      <div
+        style={{
+          width: "100%",
+          minHeight: "100vh",
+          margin: 0,
+          padding: 0,
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
         justifyContent: "flex-start",
         fontFamily: 'Press Start 2P, cursive',
         background: "none",
@@ -658,6 +639,7 @@ export default function RecettesResponsive({ recettes, onEdit, onDelete, onAdd }
                 <div
                   key={recette.id}
                   style={{ marginBottom: idx < RECETTES_GAUCHE - 1 ? "2.7rem" : 0, cursor: "pointer", position: "relative" }}
+                  className="recette-card"
                   onClick={() => setSelectedRecette(recette)}
                   tabIndex={0}
                   role="button"
@@ -730,6 +712,45 @@ export default function RecettesResponsive({ recettes, onEdit, onDelete, onAdd }
                   >
                     {recette.ingredients.map(ing => `${ing.quantite} ${ing.unite} ${ing.ingredientId}`).join(", ")}
                   </div>
+                  
+                  {/* Bouton Cuisiner cozy */}
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setCookingRecipe(recette);
+                    }}
+                    style={{
+                      position: 'absolute',
+                      bottom: '8px',
+                      right: '8px',
+                      background: 'linear-gradient(135deg, #ffb6c1 0%, #ffc0cb 100%)',
+                      border: '2px solid #8b4513',
+                      borderRadius: '8px',
+                      color: '#8b4513',
+                      fontFamily: 'Press Start 2P, cursive',
+                      fontSize: '0.5rem',
+                      padding: '0.4rem 0.6rem',
+                      cursor: 'pointer',
+                      boxShadow: '2px 2px 0px #cd853f',
+                      opacity: 0,
+                      transition: 'all 0.2s ease',
+                      textShadow: '1px 1px 0 #fff'
+                    }}
+                    className="cozy-cook-btn"
+                    title="Cuisiner cette recette"
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.background = 'linear-gradient(135deg, #ffc0cb 0%, #ffb6c1 100%)';
+                      e.currentTarget.style.transform = 'translate(1px, 1px)';
+                      e.currentTarget.style.boxShadow = '1px 1px 0px #cd853f';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background = 'linear-gradient(135deg, #ffb6c1 0%, #ffc0cb 100%)';
+                      e.currentTarget.style.transform = 'translate(0, 0)';
+                      e.currentTarget.style.boxShadow = '2px 2px 0px #cd853f';
+                    }}
+                  >
+                    🍳
+                  </button>
                 </div>
               ))}
             </div>
@@ -949,11 +970,62 @@ export default function RecettesResponsive({ recettes, onEdit, onDelete, onAdd }
               <div style={{ marginBottom: 8 }}><strong>Catégorie :</strong> {selectedRecette.categorie}</div>
             )}
             {(selectedRecette.tempsPreparation || selectedRecette.tempsCuisson) && (
-              <div style={{ marginBottom: 8 }}>
+              <div style={{ marginBottom: 16 }}>
                 <strong>Préparation :</strong> {selectedRecette.tempsPreparation ? selectedRecette.tempsPreparation + ' min' : '-'}<br />
                 <strong>Cuisson :</strong> {selectedRecette.tempsCuisson ? selectedRecette.tempsCuisson + ' min' : '-'}
               </div>
             )}
+            
+            {/* Bouton Cuisiner avec style pixel-art cozy */}
+            <div style={{ 
+              display: 'flex', 
+              justifyContent: 'center', 
+              marginTop: 20,
+              marginBottom: 8
+            }}>
+              <button
+                onClick={() => {
+                  setCookingRecipe(selectedRecette);
+                  setSelectedRecette(null);
+                }}
+                style={{
+                  background: 'linear-gradient(135deg, #ffb6c1 0%, #ffc0cb 50%, #ffb6c1 100%)',
+                  border: '3px solid #8b4513',
+                  borderRadius: '12px',
+                  color: '#8b4513',
+                  fontFamily: 'Press Start 2P, cursive',
+                  fontSize: '0.9rem',
+                  fontWeight: 'bold',
+                  padding: '12px 24px',
+                  cursor: 'pointer',
+                  boxShadow: '4px 4px 0px #cd853f, 0 0 0 1px #fff inset',
+                  textShadow: '1px 1px 0 #fff',
+                  transition: 'all 0.1s ease',
+                  position: 'relative',
+                  minWidth: '180px'
+                }}
+                onMouseDown={(e) => {
+                  e.currentTarget.style.transform = 'translate(2px, 2px)';
+                  e.currentTarget.style.boxShadow = '2px 2px 0px #cd853f, 0 0 0 1px #fff inset';
+                }}
+                onMouseUp={(e) => {
+                  e.currentTarget.style.transform = 'translate(0, 0)';
+                  e.currentTarget.style.boxShadow = '4px 4px 0px #cd853f, 0 0 0 1px #fff inset';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'translate(0, 0)';
+                  e.currentTarget.style.boxShadow = '4px 4px 0px #cd853f, 0 0 0 1px #fff inset';
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = 'linear-gradient(135deg, #ffc0cb 0%, #ffb6c1 50%, #ffc0cb 100%)';
+                }}
+                onMouseOut={(e) => {
+                  e.currentTarget.style.background = 'linear-gradient(135deg, #ffb6c1 0%, #ffc0cb 50%, #ffb6c1 100%)';
+                }}
+              >
+                🍳 Cuisiner cette recette
+              </button>
+            </div>
           </div>
         </div>
       )}
@@ -1002,6 +1074,16 @@ export default function RecettesResponsive({ recettes, onEdit, onDelete, onAdd }
           </button>
         </div>
       )}
-    </div>
+
+      {/* Mode Cuisine Cozy */}
+      {cookingRecipe && (
+        <CozyCookingMode
+          recette={cookingRecipe}
+          onComplete={() => setCookingRecipe(null)}
+          onCancel={() => setCookingRecipe(null)}
+        />
+      )}
+      </div>
+    </>
   );
 }
