@@ -2,18 +2,24 @@
   "name": "mealcraft",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "type-check": "tsc --noEmit",
+    "clean": "rm -rf .next"
   },
   "dependencies": {
     "@fontsource/press-start-2p": "^5.2.6",
+    "@types/tesseract.js": "^0.0.2",
     "dexie": "^4.0.11",
+    "html5-qrcode": "^2.3.8",
     "next": "15.4.4",
     "react": "19.1.0",
-    "react-dom": "19.1.0"
+    "react-dom": "19.1.0",
+    "tesseract.js": "^6.0.1"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",

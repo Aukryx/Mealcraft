@@ -9,6 +9,7 @@ import KitchenObject from '../components/KitchenObject';
 import KitchenInstructions from '../components/KitchenInstructions';
 import OnboardingFlow from '../components/OnboardingFlow';
 import UserProfileModal from '../components/UserProfileModal';
+import SmartStockManager from '../components/SmartStockManager';
 import { categoriesRefrigerees, categoriesNonRefrigerees } from '../data/kitchenMeta';
 import { useUserProfile } from '../hooks/useUserProfile';
 import { useStock } from '../hooks/useStock';
@@ -23,6 +24,7 @@ export default function Home() {
   const [activeObject, setActiveObject] = useState<InteractiveObject>(null);
   const [selectedDay, setSelectedDay] = useState<number | null>(null);
   const [showProfile, setShowProfile] = useState(false);
+  const [showSmartStockManager, setShowSmartStockManager] = useState(false);
   
   // Gestion du profil utilisateur
   const { profile, isFirstTime, loading, createProfile, resetProfile, updatePreferences } = useUserProfile();
@@ -94,6 +96,47 @@ export default function Home() {
       {/* Interface principale avec objets interactifs */}
       <div style={{ position: 'relative', zIndex: 2, width: '100%', height: '100%' }}>
         
+        {/* Bouton Smart Stock Manager */}
+        <div
+          onClick={() => setShowSmartStockManager(true)}
+          style={{
+            position: 'absolute',
+            top: '20px',
+            left: '20px',
+            background: 'linear-gradient(135deg, #4CAF50, #45a049)',
+            border: '2px solid rgba(255, 255, 255, 0.3)',
+            borderRadius: '16px',
+            padding: '1rem',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            cursor: 'pointer',
+            fontSize: '0.6rem',
+            fontFamily: 'Press Start 2P, cursive',
+            color: 'white',
+            boxShadow: '0 6px 20px rgba(76, 175, 80, 0.4)',
+            transition: 'all 0.3s',
+            zIndex: 10,
+            minWidth: '120px'
+          }}
+          onMouseOver={e => {
+            e.currentTarget.style.transform = 'translateY(-4px) scale(1.05)';
+            e.currentTarget.style.boxShadow = '0 10px 30px rgba(76, 175, 80, 0.6)';
+          }}
+          onMouseOut={e => {
+            e.currentTarget.style.transform = 'translateY(0) scale(1)';
+            e.currentTarget.style.boxShadow = '0 6px 20px rgba(76, 175, 80, 0.4)';
+          }}
+        >
+          <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>🎯</div>
+          <div style={{ textAlign: 'center', lineHeight: '1.4' }}>
+            <div>Smart Stock</div>
+            <div style={{ fontSize: '0.4rem', opacity: 0.9, marginTop: '0.3rem' }}>
+              📱 Scan & 🧾 Tickets
+            </div>
+          </div>
+        </div>
+
         {/* Indicateur de profil utilisateur */}
         {profile && (
           <div
@@ -312,6 +355,12 @@ export default function Home() {
           onResetProfile={resetProfile}
         />
       )}
+
+      {/* Smart Stock Manager */}
+      <SmartStockManager
+        isActive={showSmartStockManager}
+        onClose={() => setShowSmartStockManager(false)}
+      />
     </div>
   );
 }
