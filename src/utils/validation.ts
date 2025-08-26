@@ -155,6 +155,7 @@ export class Validator {
   }
   
   // Validation des données de l'API OpenFoodFacts
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   static validateOpenFoodFactsProduct(product: any): ValidationResult {
     const errors: string[] = [];
     const warnings: string[] = [];

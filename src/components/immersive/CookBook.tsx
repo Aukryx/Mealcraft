@@ -1,5 +1,6 @@
 type Props = {
   onClose: () => void;
+  onStartCooking?: (recette: Recette) => void;
 };
 import React from "react";
 import "./custom-scrollbar.css";
@@ -9,7 +10,7 @@ import { Recette } from "../../data/recettesDeBase";
 import RecettesResponsive from "../RecettesResponsive";
 
 
-export default function CookBook({ onClose }: Props) {
+export default function CookBook({ onClose, onStartCooking }: Props) {
   const { recettes, addRecette, editRecette, deleteRecette, isEmpty } = useRecettes();
   const [editing, setEditing] = useState<Recette | null>(null);
   const [showForm, setShowForm] = useState(false);
@@ -561,6 +562,7 @@ export default function CookBook({ onClose }: Props) {
         onEdit={recette => { setEditing(recette); setShowForm(true); }}
         onDelete={id => deleteRecette(id)}
         onAdd={() => { setEditing(null); setShowForm(true); }}
+        onStartCooking={onStartCooking}
       />
     </div>
   );

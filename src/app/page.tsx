@@ -10,10 +10,12 @@ import KitchenInstructions from '../components/KitchenInstructions';
 import OnboardingFlow from '../components/OnboardingFlow';
 import UserProfileModal from '../components/UserProfileModal';
 import SmartStockManager from '../components/SmartStockManager';
+import { CozyCookingMode } from '../components/CozyCookingMode';
 import { categoriesRefrigerees, categoriesNonRefrigerees } from '../data/kitchenMeta';
 import { useUserProfile } from '../hooks/useUserProfile';
 import { useStock } from '../hooks/useStock';
 import { useGlobalShortcuts } from '../hooks/useKeyboardShortcuts';
+import { Recette } from '../data/recettesDeBase';
 
 // Types d'objets interactifs
 type InteractiveObject = 'calendar' | 'cookbook' | 'fridge' | 'pantry' | null;
@@ -25,6 +27,7 @@ export default function Home() {
   const [selectedDay, setSelectedDay] = useState<number | null>(null);
   const [showProfile, setShowProfile] = useState(false);
   const [showSmartStockManager, setShowSmartStockManager] = useState(false);
+  const [cookingRecipe, setCookingRecipe] = useState<Recette | null>(null);
   
   // Gestion du profil utilisateur
   const { profile, isFirstTime, loading, createProfile, resetProfile, updatePreferences } = useUserProfile();
@@ -34,7 +37,7 @@ export default function Home() {
   useGlobalShortcuts(setActiveObject);
   
   // Simulation du planning
-  const [planning, setPlanning] = useState<{ [day: number]: { lunch?: string; dinner?: string } }>({});
+  const [planning] = useState<{ [day: number]: { lunch?: string; dinner?: string } }>({});
 
   // Date actuelle pour le calendrier
   const today = new Date();
@@ -72,7 +75,16 @@ export default function Home() {
     );
   }
 
-
+  // Mode cuisine actif - exactement comme dans Planning.tsx
+  if (cookingRecipe) {
+    return (
+      <CozyCookingMode
+        recette={cookingRecipe}
+        onComplete={() => setCookingRecipe(null)}
+        onCancel={() => setCookingRecipe(null)}
+      />
+    );
+  }
 
   return (
     <div style={{
@@ -325,7 +337,15 @@ export default function Home() {
       
       {/* Modales des objets interactifs */}
       {activeObject === 'calendar' && <CalendarWall onClose={() => setActiveObject(null)} />}
-      {activeObject === 'cookbook' && <CookBook onClose={() => setActiveObject(null)} />}
+      {activeObject === 'cookbook' && (
+        <CookBook 
+          onClose={() => setActiveObject(null)} 
+          onStartCooking={(recette: Recette) => {
+            setCookingRecipe(recette);
+            setActiveObject(null); // Ferme le livre
+          }}
+        />
+      )}
       {(activeObject === 'fridge' || activeObject === 'pantry') && (
         <FridgePantryModal 
           initialTab={activeObject === 'fridge' ? 'fridge' : 'pantry'} 

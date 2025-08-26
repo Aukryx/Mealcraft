@@ -27,8 +27,17 @@ export function useRecettes() {
     
     try {
       if (saved) custom = JSON.parse(saved);
-      if (deleted) deletedList = JSON.parse(deleted);
-    } catch {}
+      if (deleted) {
+        const parsed = JSON.parse(deleted);
+        // S'assurer que deletedList est un tableau
+        deletedList = Array.isArray(parsed) ? parsed : [];
+      }
+    } catch (e) {
+      console.warn('Erreur lors du chargement des recettes:', e);
+      // Valeurs par défaut en cas d'erreur
+      custom = [];
+      deletedList = [];
+    }
     
     // Fusionne recettes de base et custom, retire celles supprimées
     const all = [
@@ -41,30 +50,41 @@ export function useRecettes() {
 
   // Sauvegarder les recettes custom et les suppressions
   const save = (custom: Recette[], deleted: string[]) => {
-    // Structure compatible cloud
-    const dataStructure: RecettesData = {
-      custom,
-      deleted,
-      version: DATA_VERSION,
-      lastModified: Date.now(),
-      deviceId: getDeviceId()
-    };
-    
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(custom));
-    localStorage.setItem(STORAGE_KEY_DELETED, JSON.stringify(deleted));
-    
-    // Optionnel : sauvegarder aussi la structure complète pour migration
-    localStorage.setItem('mealcraft_data_recettes', JSON.stringify(dataStructure));
+    try {
+      // Structure compatible cloud
+      const dataStructure: RecettesData = {
+        custom,
+        deleted,
+        version: DATA_VERSION,
+        lastModified: Date.now(),
+        deviceId: getDeviceId()
+      };
+      
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(custom));
+      localStorage.setItem(STORAGE_KEY_DELETED, JSON.stringify(deleted));
+      
+      // Optionnel : sauvegarder aussi la structure complète pour migration
+      localStorage.setItem('mealcraft_data_recettes', JSON.stringify(dataStructure));
+    } catch (e) {
+      console.error('Erreur lors de la sauvegarde des recettes:', e);
+      // En cas d'erreur de stockage, on continue sans planter l'application
+    }
   };
 
   // Générer un ID d'appareil stable
   const getDeviceId = (): string => {
-    let deviceId = localStorage.getItem('mealcraft_device_id');
-    if (!deviceId) {
-      deviceId = 'device_' + Math.random().toString(36).substr(2, 9);
-      localStorage.setItem('mealcraft_device_id', deviceId);
+    try {
+      let deviceId = localStorage.getItem('mealcraft_device_id');
+      if (!deviceId) {
+        deviceId = 'device_' + Math.random().toString(36).substr(2, 9);
+        localStorage.setItem('mealcraft_device_id', deviceId);
+      }
+      return deviceId;
+    } catch (e) {
+      console.warn('Erreur lors de la gestion de l\'ID d\'appareil:', e);
+      // Retourner un ID temporaire en cas d'erreur
+      return 'device_temp_' + Math.random().toString(36).substr(2, 9);
     }
-    return deviceId;
   };
 
   // Ajouter une recette

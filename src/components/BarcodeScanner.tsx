@@ -28,6 +28,7 @@ export const BarcodeScanner: React.FC<BarcodeScannerProps> = ({
     return () => {
       stopScanning();
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isActive, testMode]);
 
   const requestCameraPermission = async () => {
@@ -158,7 +159,7 @@ export const BarcodeScanner: React.FC<BarcodeScannerProps> = ({
           <div style={{ color: '#ff6b6b', marginBottom: '1rem' }}>
             <p>❌ Accès caméra refusé ou non disponible</p>
             <p style={{ fontSize: '0.8rem', opacity: 0.8 }}>
-              Veuillez autoriser l'accès à la caméra pour scanner
+              Veuillez autoriser l&apos;accès à la caméra pour scanner
             </p>
             
             {/* Mode test en développement */}
@@ -389,7 +390,7 @@ export const BarcodeScanner: React.FC<BarcodeScannerProps> = ({
               <ul style={{ textAlign: 'left', margin: 0, paddingLeft: '1rem' }}>
                 <li>Centrez le code-barres dans le cadre</li>
                 <li>Gardez l'appareil stable</li>
-                <li>Assurez-vous d'avoir un bon éclairage</li>
+                <li>Assurez-vous d&apos;avoir un bon éclairage</li>
               </ul>
             </>
           )}

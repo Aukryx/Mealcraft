@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import { Recette } from "../data/recettesDeBase";
 import StockSummary from "./StockSummary";
 import { useStock } from "../hooks/useStock";
-import { CozyCookingMode } from "./CozyCookingMode";
 
 const RECETTES_PAR_PAGE_DESKTOP = 9;
 const RECETTES_GAUCHE = 5;
@@ -14,6 +13,7 @@ type RecettesResponsiveProps = {
   onEdit: (recette: Recette) => void;
   onDelete: (id: string) => void;
   onAdd: () => void;
+  onStartCooking?: (recette: Recette) => void;
 };
 
 // Types pour les filtres
@@ -91,13 +91,12 @@ function filtrerRecettes(recettes: Recette[], filtres: Filtres, stock: Array<{ i
   });
 }
 
-export default function RecettesResponsive({ recettes, onEdit, onDelete, onAdd }: RecettesResponsiveProps) {
+export default function RecettesResponsive({ recettes, onEdit, onDelete, onAdd, onStartCooking }: RecettesResponsiveProps) {
   const isMobile = useIsMobile();
   const [page, setPage] = useState(0);
   const [selectedRecette, setSelectedRecette] = useState<Recette | null>(null);
   const [filtres, setFiltres] = useState<Filtres>(filtresInitiaux);
   const [showFilters, setShowFilters] = useState(false);
-  const [cookingRecipe, setCookingRecipe] = useState<Recette | null>(null);
   const { stock } = useStock(); // Utilisation du hook stock
 
   // Appliquer les filtres
@@ -717,7 +716,9 @@ export default function RecettesResponsive({ recettes, onEdit, onDelete, onAdd }
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
-                      setCookingRecipe(recette);
+                      if (onStartCooking) {
+                        onStartCooking(recette);
+                      }
                     }}
                     style={{
                       position: 'absolute',
@@ -985,7 +986,9 @@ export default function RecettesResponsive({ recettes, onEdit, onDelete, onAdd }
             }}>
               <button
                 onClick={() => {
-                  setCookingRecipe(selectedRecette);
+                  if (onStartCooking && selectedRecette) {
+                    onStartCooking(selectedRecette);
+                  }
                   setSelectedRecette(null);
                 }}
                 style={{
@@ -1075,14 +1078,6 @@ export default function RecettesResponsive({ recettes, onEdit, onDelete, onAdd }
         </div>
       )}
 
-      {/* Mode Cuisine Cozy */}
-      {cookingRecipe && (
-        <CozyCookingMode
-          recette={cookingRecipe}
-          onComplete={() => setCookingRecipe(null)}
-          onCancel={() => setCookingRecipe(null)}
-        />
-      )}
       </div>
     </>
   );

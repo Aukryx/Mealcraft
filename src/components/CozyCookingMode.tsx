@@ -70,33 +70,111 @@ export const CozyCookingMode: React.FC<CozyCookingModeProps> = ({
   const allStepsCompleted = completedSteps.length === recette.etapes.length;
 
   return (
-    <div className="cozy-cooking-mode">
+    <div 
+      style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        width: '100vw',
+        height: '100vh',
+        background: 'linear-gradient(135deg, #FFF6B7, #FFD6A5)',
+        zIndex: 1000,
+        overflow: 'auto',
+        padding: '2rem'
+      }}
+    >
       {/* Header avec style cozy */}
-      <div className="cozy-header">
-        <button onClick={onCancel} className="cozy-back-btn">
+      <div style={{
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: '2rem',
+        background: 'rgba(255, 255, 255, 0.9)',
+        padding: '1rem',
+        borderRadius: '12px',
+        boxShadow: '0 4px 16px rgba(0,0,0,0.1)'
+      }}>
+        <button 
+          onClick={onCancel} 
+          style={{
+            background: '#ff6b6b',
+            color: 'white',
+            border: 'none',
+            borderRadius: '8px',
+            padding: '0.75rem 1rem',
+            fontFamily: 'Press Start 2P, cursive',
+            fontSize: '0.7rem',
+            cursor: 'pointer',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.2)'
+          }}
+        >
           🏠 Retour au livre
         </button>
-        <div className="recipe-title-container">
-          <h1 className="cozy-recipe-title">🍳 {recette.nom}</h1>
-          <div className="cozy-cooking-info">
+        <div style={{ textAlign: 'center' }}>
+          <h1 style={{
+            fontFamily: 'Press Start 2P, cursive',
+            fontSize: '1.5rem',
+            color: '#8b4513',
+            margin: 0,
+            marginBottom: '0.5rem'
+          }}>🍳 {recette.nom}</h1>
+          <div style={{
+            fontFamily: 'Press Start 2P, cursive',
+            fontSize: '0.8rem',
+            color: '#666'
+          }}>
             {recette.tempsPreparation ? `⏰ ${recette.tempsPreparation}min` : ''} 
             {recette.tempsCuisson ? ` • 🔥 ${recette.tempsCuisson}min` : ''}
           </div>
           
           {/* Sélecteur de portions */}
-          <div className="cozy-portions-selector">
-            <span className="portions-label">👥 Portions:</span>
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '1rem',
+            marginTop: '1rem'
+          }}>
+            <span style={{
+              fontFamily: 'Press Start 2P, cursive',
+              fontSize: '0.7rem',
+              color: '#8b4513'
+            }}>👥 Portions:</span>
             <button 
               onClick={() => setPortions(Math.max(1, portions - 1))}
-              className="cozy-portion-btn"
               disabled={portions <= 1}
+              style={{
+                background: portions <= 1 ? '#ccc' : '#4CAF50',
+                color: 'white',
+                border: 'none',
+                borderRadius: '4px',
+                padding: '0.5rem',
+                cursor: portions <= 1 ? 'not-allowed' : 'pointer',
+                fontFamily: 'Press Start 2P, cursive',
+                fontSize: '0.6rem'
+              }}
             >
               -
             </button>
-            <span className="portions-value">{portions}</span>
+            <span style={{
+              fontFamily: 'Press Start 2P, cursive',
+              fontSize: '1rem',
+              color: '#8b4513',
+              minWidth: '2rem',
+              textAlign: 'center'
+            }}>{portions}</span>
             <button 
               onClick={() => setPortions(portions + 1)}
-              className="cozy-portion-btn"
+              style={{
+                background: '#4CAF50',
+                color: 'white',
+                border: 'none',
+                borderRadius: '4px',
+                padding: '0.5rem',
+                cursor: 'pointer',
+                fontFamily: 'Press Start 2P, cursive',
+                fontSize: '0.6rem'
+              }}
             >
               +
             </button>
@@ -106,23 +184,71 @@ export const CozyCookingMode: React.FC<CozyCookingModeProps> = ({
 
       {/* Timer Section cozy */}
       {timer !== null && (
-        <div className="cozy-timer-section">
-          <div className="cozy-timer-card">
-            <div className="timer-emoji">⏰</div>
-            <div className={`cozy-timer-display ${timer === 0 ? 'timer-finished' : ''}`}>
+        <div style={{
+          background: 'rgba(255, 255, 255, 0.9)',
+          borderRadius: '12px',
+          padding: '1.5rem',
+          marginBottom: '2rem',
+          boxShadow: '0 4px 16px rgba(0,0,0,0.1)',
+          textAlign: 'center'
+        }}>
+          <div style={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: '1rem'
+          }}>
+            <div style={{ fontSize: '2rem' }}>⏰</div>
+            <div style={{
+              fontFamily: 'Press Start 2P, cursive',
+              fontSize: '2rem',
+              color: timer === 0 ? '#ff6b6b' : '#4CAF50',
+              fontWeight: 'bold'
+            }}>
               {formatTime(timer)}
             </div>
-            <div className="cozy-timer-controls">
-              <button onClick={toggleTimer} className="cozy-timer-btn">
+            <div style={{ display: 'flex', gap: '1rem' }}>
+              <button 
+                onClick={toggleTimer} 
+                style={{
+                  background: '#4CAF50',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '8px',
+                  padding: '0.75rem',
+                  cursor: 'pointer',
+                  fontSize: '1rem'
+                }}
+              >
                 {isTimerActive ? '⏸️' : '▶️'}
               </button>
-              <button onClick={resetTimer} className="cozy-timer-btn">
+              <button 
+                onClick={resetTimer} 
+                style={{
+                  background: '#ff6b6b',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '8px',
+                  padding: '0.75rem',
+                  cursor: 'pointer',
+                  fontSize: '1rem'
+                }}
+              >
                 🔄
               </button>
             </div>
             {timer === 0 && (
-              <div className="cozy-timer-alert">
-                🎉 C'est prêt ! Vérifiez votre plat 
+              <div style={{
+                fontFamily: 'Press Start 2P, cursive',
+                fontSize: '0.8rem',
+                color: '#ff6b6b',
+                marginTop: '1rem',
+                padding: '0.5rem',
+                background: '#fff',
+                borderRadius: '8px',
+                border: '2px solid #ff6b6b'
+              }}>
+                🎉 C&apos;est prêt ! Vérifiez votre plat 
               </div>
             )}
           </div>
@@ -130,63 +256,244 @@ export const CozyCookingMode: React.FC<CozyCookingModeProps> = ({
       )}
 
       {/* Quick Timers cozy */}
-      <div className="cozy-quick-timers">
-        <div className="quick-timer-label">⏱️ Minuteurs rapides :</div>
-        <div className="quick-timer-buttons">
-          <button onClick={() => startTimer(1)} className="cozy-quick-timer-btn">1min</button>
-          <button onClick={() => startTimer(5)} className="cozy-quick-timer-btn">5min</button>
-          <button onClick={() => startTimer(10)} className="cozy-quick-timer-btn">10min</button>
-          <button onClick={() => startTimer(15)} className="cozy-quick-timer-btn">15min</button>
+      <div style={{
+        background: 'rgba(255, 255, 255, 0.9)',
+        borderRadius: '12px',
+        padding: '1.5rem',
+        marginBottom: '2rem',
+        boxShadow: '0 4px 16px rgba(0,0,0,0.1)'
+      }}>
+        <div style={{
+          fontFamily: 'Press Start 2P, cursive',
+          fontSize: '0.9rem',
+          color: '#8b4513',
+          marginBottom: '1rem',
+          textAlign: 'center'
+        }}>⏱️ Minuteurs rapides :</div>
+        <div style={{
+          display: 'flex',
+          gap: '0.5rem',
+          justifyContent: 'center',
+          flexWrap: 'wrap'
+        }}>
+          <button 
+            onClick={() => startTimer(1)} 
+            style={{
+              background: '#4CAF50',
+              color: 'white',
+              border: 'none',
+              borderRadius: '6px',
+              padding: '0.5rem 1rem',
+              fontFamily: 'Press Start 2P, cursive',
+              fontSize: '0.6rem',
+              cursor: 'pointer',
+              boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+            }}
+          >1min</button>
+          <button 
+            onClick={() => startTimer(5)} 
+            style={{
+              background: '#4CAF50',
+              color: 'white',
+              border: 'none',
+              borderRadius: '6px',
+              padding: '0.5rem 1rem',
+              fontFamily: 'Press Start 2P, cursive',
+              fontSize: '0.6rem',
+              cursor: 'pointer',
+              boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+            }}
+          >5min</button>
+          <button 
+            onClick={() => startTimer(10)} 
+            style={{
+              background: '#4CAF50',
+              color: 'white',
+              border: 'none',
+              borderRadius: '6px',
+              padding: '0.5rem 1rem',
+              fontFamily: 'Press Start 2P, cursive',
+              fontSize: '0.6rem',
+              cursor: 'pointer',
+              boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+            }}
+          >10min</button>
+          <button 
+            onClick={() => startTimer(15)} 
+            style={{
+              background: '#4CAF50',
+              color: 'white',
+              border: 'none',
+              borderRadius: '6px',
+              padding: '0.5rem 1rem',
+              fontFamily: 'Press Start 2P, cursive',
+              fontSize: '0.6rem',
+              cursor: 'pointer',
+              boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+            }}
+          >15min</button>
         </div>
       </div>
 
       {/* Ingredients List cozy */}
-      <div className="cozy-ingredients-section">
-        <h2 className="cozy-section-title">📝 Mes ingrédients</h2>
-        <div className="cozy-ingredients-grid">
+      <div style={{
+        background: 'rgba(255, 255, 255, 0.9)',
+        borderRadius: '12px',
+        padding: '1.5rem',
+        marginBottom: '2rem',
+        boxShadow: '0 4px 16px rgba(0,0,0,0.1)'
+      }}>
+        <h2 style={{
+          fontFamily: 'Press Start 2P, cursive',
+          fontSize: '1.2rem',
+          color: '#8b4513',
+          marginBottom: '1rem',
+          textAlign: 'center'
+        }}>📝 Mes ingrédients</h2>
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
+          gap: '0.75rem'
+        }}>
           {recette.ingredients.map((ing, index) => (
-            <div key={index} className="cozy-ingredient-card">
-              <span className="ingredient-quantity">
+            <div key={index} style={{
+              background: '#f8f9fa',
+              borderRadius: '8px',
+              padding: '1rem',
+              border: '2px solid #e9ecef',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              transition: 'all 0.2s'
+            }}>
+              <span style={{
+                fontFamily: 'Press Start 2P, cursive',
+                fontSize: '0.7rem',
+                color: '#4CAF50',
+                fontWeight: 'bold'
+              }}>
                 {(ing.quantite * portions).toFixed(ing.quantite % 1 === 0 ? 0 : 1)} {ing.unite}
               </span>
-              <span className="ingredient-name">{ing.ingredientId}</span>
+              <span style={{
+                fontFamily: 'Press Start 2P, cursive',
+                fontSize: '0.6rem',
+                color: '#8b4513'
+              }}>{ing.ingredientId}</span>
             </div>
           ))}
           {recette.ingredientsOptionnels?.map((ing, index) => (
-            <div key={`opt-${index}`} className="cozy-ingredient-card optional">
-              <span className="ingredient-quantity">
+            <div key={`opt-${index}`} style={{
+              background: '#fff3cd',
+              borderRadius: '8px',
+              padding: '1rem',
+              border: '2px solid #ffeaa7',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              transition: 'all 0.2s',
+              opacity: 0.8
+            }}>
+              <span style={{
+                fontFamily: 'Press Start 2P, cursive',
+                fontSize: '0.7rem',
+                color: '#f39c12',
+                fontWeight: 'bold'
+              }}>
                 {(ing.quantite * portions).toFixed(ing.quantite % 1 === 0 ? 0 : 1)} {ing.unite}
               </span>
-              <span className="ingredient-name">{ing.ingredientId} ✨</span>
+              <span style={{
+                fontFamily: 'Press Start 2P, cursive',
+                fontSize: '0.6rem',
+                color: '#8b4513'
+              }}>{ing.ingredientId} ✨</span>
             </div>
           ))}
         </div>
       </div>
 
       {/* Cooking Steps cozy */}
-      <div className="cozy-steps-section">
-        <h2 className="cozy-section-title">👩‍🍳 Les étapes</h2>
+      <div style={{
+        background: 'rgba(255, 255, 255, 0.9)',
+        borderRadius: '12px',
+        padding: '1.5rem',
+        marginBottom: '2rem',
+        boxShadow: '0 4px 16px rgba(0,0,0,0.1)'
+      }}>
+        <h2 style={{
+          fontFamily: 'Press Start 2P, cursive',
+          fontSize: '1.2rem',
+          color: '#8b4513',
+          marginBottom: '1rem',
+          textAlign: 'center'
+        }}>👩‍🍳 Les étapes</h2>
         {recette.etapes.map((etape, index) => (
           <div 
             key={index} 
-            className={`cozy-step-card ${completedSteps.includes(index) ? 'completed' : ''} ${index === currentStep ? 'current' : ''}`}
+            style={{
+              background: completedSteps.includes(index) ? '#d4edda' : (index === currentStep ? '#fff3cd' : '#f8f9fa'),
+              borderRadius: '12px',
+              padding: '1.5rem',
+              marginBottom: '1rem',
+              border: `3px solid ${completedSteps.includes(index) ? '#28a745' : (index === currentStep ? '#ffc107' : '#e9ecef')}`,
+              boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+              transition: 'all 0.3s'
+            }}
           >
-            <div className="step-header">
-              <div className="step-number">Étape {index + 1}</div>
+            <div style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              marginBottom: '1rem'
+            }}>
+              <div style={{
+                fontFamily: 'Press Start 2P, cursive',
+                fontSize: '0.8rem',
+                color: '#8b4513',
+                fontWeight: 'bold'
+              }}>Étape {index + 1}</div>
               <button
                 onClick={() => markStepComplete(index)}
-                className={`cozy-complete-btn ${completedSteps.includes(index) ? 'completed' : ''}`}
+                style={{
+                  background: completedSteps.includes(index) ? '#28a745' : '#6c757d',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '6px',
+                  padding: '0.5rem 1rem',
+                  fontFamily: 'Press Start 2P, cursive',
+                  fontSize: '0.6rem',
+                  cursor: 'pointer',
+                  boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+                }}
               >
                 {completedSteps.includes(index) ? '✅ Fini !' : '⭕ À faire'}
               </button>
             </div>
-            <div className="step-content">
+            <div style={{
+              fontFamily: 'Arial, sans-serif',
+              fontSize: '1rem',
+              color: '#333',
+              lineHeight: '1.5',
+              marginBottom: '1rem'
+            }}>
               {etape}
             </div>
-            <div className="step-actions">
+            <div style={{
+              display: 'flex',
+              justifyContent: 'center'
+            }}>
               <button
                 onClick={() => setCurrentStep(index)}
-                className="cozy-focus-btn"
+                style={{
+                  background: index === currentStep ? '#ffc107' : '#007bff',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '6px',
+                  padding: '0.5rem 1rem',
+                  fontFamily: 'Press Start 2P, cursive',
+                  fontSize: '0.6rem',
+                  cursor: 'pointer',
+                  boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+                }}
               >
                 👀 Je suis là
               </button>
@@ -197,13 +504,44 @@ export const CozyCookingMode: React.FC<CozyCookingModeProps> = ({
 
       {/* Completion cozy */}
       {allStepsCompleted && (
-        <div className="cozy-completion-section">
-          <div className="completion-emoji">🎉✨🍽️✨🎉</div>
-          <div className="cozy-completion-message">
+        <div style={{
+          background: 'linear-gradient(135deg, #d4edda, #c3e6cb)',
+          borderRadius: '12px',
+          padding: '2rem',
+          marginBottom: '2rem',
+          boxShadow: '0 4px 16px rgba(0,0,0,0.1)',
+          border: '3px solid #28a745',
+          textAlign: 'center'
+        }}>
+          <div style={{
+            fontSize: '2rem',
+            marginBottom: '1rem'
+          }}>🎉✨🍽️✨🎉</div>
+          <div style={{
+            fontFamily: 'Press Start 2P, cursive',
+            fontSize: '1rem',
+            color: '#155724',
+            marginBottom: '1.5rem',
+            fontWeight: 'bold'
+          }}>
             Bravo ! Votre délicieux {recette.nom} est terminé !
           </div>
-          <button onClick={() => onComplete(portions)} className="cozy-complete-cooking-btn">
-            🌟 C'est fini ! 🌟
+          <button 
+            onClick={() => onComplete(portions)} 
+            style={{
+              background: '#28a745',
+              color: 'white',
+              border: 'none',
+              borderRadius: '12px',
+              padding: '1rem 2rem',
+              fontFamily: 'Press Start 2P, cursive',
+              fontSize: '0.8rem',
+              cursor: 'pointer',
+              boxShadow: '0 4px 8px rgba(0,0,0,0.2)',
+              fontWeight: 'bold'
+            }}
+          >
+            🌟 C&apos;est fini ! 🌟
           </button>
         </div>
       )}
