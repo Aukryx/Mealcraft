@@ -115,16 +115,16 @@ describe('useUserProfile', () => {
       expect(result.current.loading).toBe(false)
     })
     
-    let createdProfile: UserProfile
+    let createdProfile: UserProfile | undefined
     await act(async () => {
       createdProfile = await result.current.createProfile('John Doe')
     })
     
-    expect(createdProfile.nom).toBe('John Doe')
-    expect(createdProfile.tutorialComplete).toBe(false)
-    expect(createdProfile.id).toMatch(/^user_\d+$/)
-    expect(createdProfile.dateCreation).toBeInstanceOf(Date)
-    expect(createdProfile.derniereConnexion).toBeInstanceOf(Date)
+    expect(createdProfile?.nom).toBe('John Doe')
+    expect(createdProfile?.tutorialComplete).toBe(false)
+    expect(createdProfile?.id).toMatch(/^user_\d+$/)
+    expect(createdProfile?.dateCreation).toBeInstanceOf(Date)
+    expect(createdProfile?.derniereConnexion).toBeInstanceOf(Date)
     
     expect(mockDB.userProfile.add).toHaveBeenCalledWith(createdProfile)
     expect(result.current.profile).toEqual(createdProfile)
@@ -141,12 +141,12 @@ describe('useUserProfile', () => {
       expect(result.current.loading).toBe(false)
     })
     
-    let createdProfile: UserProfile
+    let createdProfile: UserProfile | undefined
     await act(async () => {
       createdProfile = await result.current.createProfile('  John Doe  ')
     })
     
-    expect(createdProfile.nom).toBe('John Doe')
+    expect(createdProfile?.nom).toBe('John Doe')
   })
 
   test('should handle error during profile creation', async () => {
@@ -208,7 +208,7 @@ describe('useUserProfile', () => {
 
   test('should handle error during profile update', async () => {
     mockDB.userProfile.toArray.mockResolvedValue([mockProfile])
-    mockDB.userProfile.update.mockResolvedValue(1) // For initial load
+    mockDB.userProfile.update.mockResolvedValue(1)
     
     const { result } = renderHook(() => useUserProfile())
     
@@ -357,12 +357,12 @@ describe('useUserProfile', () => {
       expect(result.current.loading).toBe(false)
     })
     
-    let createdProfile: UserProfile
+    let createdProfile: UserProfile | undefined
     await act(async () => {
       createdProfile = await result.current.createProfile('John Doe')
     })
     
-    expect(createdProfile.preferences).toEqual({
+    expect(createdProfile?.preferences).toEqual({
       consommationMode: 'simulation',
       portionsParDefaut: 2,
       alertesStock: true,
