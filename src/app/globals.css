@@ -48,6 +48,82 @@ h1, h2, h3, h4, h5, h6 {
   body {
     font-size: 12px;
   }
+}
+
+/* ========================================
+   OPTIMISATIONS PIXEL ART ASEPRITE
+   ======================================== */
+
+/* Désactiver l'anti-aliasing globalement pour pixel art */
+.pixel-art, .pixel-art *, 
+.scene-background, .pixel-art-sprite img {
+  image-rendering: -moz-crisp-edges;
+  image-rendering: -webkit-crisp-edges; 
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  
+  /* Éviter le blur sur les transformations */
+  -webkit-transform: translateZ(0);
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+/* Optimisations spécifiques pour les sprites interactifs */
+.pixel-art-sprite {
+  /* Amélioration des performances sur mobile */
+  -webkit-transform: translate3d(0, 0, 0);
+  transform: translate3d(0, 0, 0);
+  will-change: transform;
+  
+  /* Transition rapide pour réactivité tactile */
+  transition: transform 0.1s ease;
+}
+
+/* Backgrounds de scènes optimisés */
+.scene-background {
+  /* Force le rendu pixelisé pour les backgrounds */
+  image-rendering: pixelated !important;
+  
+  /* Éviter le scroll bounce sur mobile */
+  overscroll-behavior: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Indicateurs d'interaction pour mobile/tablette */
+.interaction-hint {
+  /* Animation pixel art friendly */
+  animation: pixelPulse 2s infinite;
+}
+
+@keyframes pixelPulse {
+  0% { 
+    transform: scale(1); 
+    opacity: 0.8; 
+  }
+  50% { 
+    transform: scale(1.2); 
+    opacity: 1; 
+  }
+  100% { 
+    transform: scale(1); 
+    opacity: 0.8; 
+  }
+}
+
+/* Optimisations mobile spécifiques au pixel art */
+@media (max-width: 768px) {
+  .pixel-art-sprite {
+    /* Réduire les transitions pour améliorer les performances */
+    transition: transform 0.05s ease;
+  }
+  
+  /* Zones tactiles plus grandes sur mobile */
+  .pixel-art-sprite {
+    /* Agrandir légèrement la zone cliquable */
+    padding: 4px;
+    margin: -4px;
+  }
+}
   
   /* Adaptation spéciale pour les tablettes en mode portrait */
   .kitchen-container {
@@ -58,7 +134,6 @@ h1, h2, h3, h4, h5, h6 {
     max-width: 90vw;
     max-height: 90vh;
   }
-}
 
 /* Style pour les boutons tactiles */
 @media (hover: none) and (pointer: coarse) {
@@ -136,5 +211,88 @@ h1, h2, h3, h4, h5, h6 {
     padding: 1rem;
     border-radius: 12px;
     max-height: 95vh;
+  }
+}
+
+/* ========================================
+   OPTIMISATIONS PIXEL ART ASEPRITE
+   ======================================== */
+
+/* Désactiver l'anti-aliasing globalement pour pixel art */
+.pixel-art, .pixel-art *, 
+.scene-background, .pixel-art-sprite img {
+  image-rendering: -moz-crisp-edges;
+  image-rendering: -webkit-crisp-edges; 
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  
+  /* Éviter le blur sur les transformations */
+  -webkit-transform: translateZ(0);
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+/* Optimisations spécifiques pour les sprites interactifs */
+.pixel-art-sprite {
+  /* Amélioration des performances sur mobile */
+  -webkit-transform: translate3d(0, 0, 0);
+  transform: translate3d(0, 0, 0);
+  will-change: transform;
+  
+  /* Transition rapide pour réactivité tactile */
+  transition: transform 0.1s ease;
+}
+
+/* Backgrounds de scènes optimisés */
+.scene-background {
+  /* Force le rendu pixelisé pour les backgrounds */
+  image-rendering: pixelated !important;
+  
+  /* Éviter le scroll bounce sur mobile */
+  overscroll-behavior: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Indicateurs d'interaction pour mobile/tablette */
+.interaction-hint {
+  /* Animation pixel art friendly */
+  animation: pixelPulse 2s infinite;
+}
+
+@keyframes pixelPulse {
+  0% { 
+    transform: scale(1); 
+    opacity: 0.8; 
+  }
+  50% { 
+    transform: scale(1.2); 
+    opacity: 1; 
+  }
+  100% { 
+    transform: scale(1); 
+    opacity: 0.8; 
+  }
+}
+
+/* Optimisations mobile spécifiques au pixel art */
+@media (max-width: 768px) {
+  .pixel-art-sprite {
+    /* Réduire les transitions pour améliorer les performances */
+    transition: transform 0.05s ease;
+  }
+  
+  /* Zones tactiles plus grandes sur mobile */
+  .pixel-art-sprite {
+    /* Agrandir légèrement la zone cliquable */
+    padding: 4px;
+    margin: -4px;
+  }
+}
+
+/* Respecter les préférences d'accessibilité */
+@media (prefers-reduced-motion: reduce) {
+  .pixel-art-sprite, .interaction-hint {
+    animation: none;
+    transition: none;
   }
 }
