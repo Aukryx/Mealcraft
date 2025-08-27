@@ -1,90 +1,156 @@
-import React, { useState } from 'react';
-import PixelArtSprite from './PixelArtSprite';
-import { MEALCRAFT_SCENES, SceneConfig } from '../config/asepriteConfig';
+"use client"
+
+import React, { useState, useEffect } from 'react';
+import { MEALCRAFT_SCENES, SceneConfig, AsepriteSpriteConfig } from '../config/asepriteConfig';
 
 interface SceneManagerProps {
-  onSceneTransition?: (fromScene: string, toScene: string, objectClicked: string) => void;
+  initialScene?: string;
+  onSceneChange?: (sceneId: string) => void;
 }
 
-export default function SceneManager({ onSceneTransition }: SceneManagerProps) {
-  const [currentScene, setCurrentScene] = useState<string>('kitchen');
+interface DeviceInfo {
+  type: 'mobile' | 'tablet' | 'desktop';
+  width: number;
+  height: number;
+  scale: number;
+}
+
+export default function SceneManager({ 
+  initialScene = 'kitchen',
+  onSceneChange 
+}: SceneManagerProps) {
+  const [currentScene, setCurrentScene] = useState<string>(initialScene);
+  const [deviceInfo, setDeviceInfo] = useState<DeviceInfo>({
+    type: 'mobile',
+    width: 390,
+    height: 844,
+    scale: 3
+  });
   const [hoveredObject, setHoveredObject] = useState<string | null>(null);
   const [activeObject, setActiveObject] = useState<string | null>(null);
 
-  const scene = MEALCRAFT_SCENES[currentScene];
+  // Détection du type d'appareil
+  useEffect(() => {
+    const updateDeviceInfo = () => {
+      const width = window.innerWidth;
+      const height = window.innerHeight;
+      
+      let type: DeviceInfo['type'] = 'mobile';
+      let scale = 3;
+      
+      if (width >= 1200) {
+        type = 'desktop';
+        scale = 6;
+      } else if (width >= 768) {
+        type = 'tablet';
+        scale = 4;
+      }
+      
+      setDeviceInfo({ type, width, height, scale });
+    };
+
+    updateDeviceInfo();
+    window.addEventListener('resize', updateDeviceInfo);
+    return () => window.removeEventListener('resize', updateDeviceInfo);
+  }, []);
+
+  const scene: SceneConfig = MEALCRAFT_SCENES[currentScene];
   
   if (!scene) {
-    console.error(`Scène non trouvée: ${currentScene}`);
-    return <div>Erreur: Scène non trouvée</div>;
+    console.error(`Scene not found: ${currentScene}`);
+    return <div>Scene introuvable</div>;
   }
 
+  // Gestion du clic sur un objet interactif
   const handleObjectClick = (objectId: string) => {
-    const targetScene = scene.transitions[objectId];
+    setActiveObject(objectId);
     
-    if (targetScene) {
-      // Transition vers une nouvelle scène
-      onSceneTransition?.(currentScene, targetScene, objectId);
-      setCurrentScene(targetScene);
-      setActiveObject(null);
-      setHoveredObject(null);
-    } else {
-      // Action sur place (toggle state)
-      setActiveObject(activeObject === objectId ? null : objectId);
+    // Feedback haptique sur mobile
+    if ('vibrate' in navigator && deviceInfo.type === 'mobile') {
+      const sprite = scene.interactiveObjects[objectId];
+      if (sprite?.hapticFeedback) {
+        const intensity = sprite.hapticFeedback === 'light' ? 10 : 
+                         sprite.hapticFeedback === 'medium' ? 20 : 50;
+        navigator.vibrate(intensity);
+      }
+    }
+
+    // Transition vers une autre scène si définie
+    const targetScene = scene.transitions[objectId];
+    if (targetScene && MEALCRAFT_SCENES[targetScene]) {
+      setTimeout(() => {
+        setCurrentScene(targetScene);
+        setActiveObject(null);
+        onSceneChange?.(targetScene);
+      }, 200); // Petit délai pour l'animation
     }
   };
 
+  // Gestion du hover (desktop) et touch start (mobile)
   const handleObjectHover = (objectId: string, isHovering: boolean) => {
     setHoveredObject(isHovering ? objectId : null);
   };
 
+  // Calcul des dimensions responsives
+  const getSceneDimensions = () => {
+    const sceneDims = scene.dimensions[deviceInfo.type];
+    const containerAspect = deviceInfo.width / deviceInfo.height;
+    const sceneAspect = sceneDims.width / sceneDims.height;
+    
+    let width, height;
+    
+    if (containerAspect > sceneAspect) {
+      // Container plus large que la scène
+      height = Math.min(deviceInfo.height, sceneDims.height);
+      width = height * sceneAspect;
+    } else {
+      // Container plus haut que la scène
+      width = Math.min(deviceInfo.width, sceneDims.width);
+      height = width / sceneAspect;
+    }
+    
+    return { width, height };
+  };
+
+  const sceneDimensions = getSceneDimensions();
+
   return (
-    <div className="scene-container">
-      {/* Background de la scène */}
+    <div style={{
+      width: '100vw',
+      height: '100vh',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: '#1a1c2c', // Couleur de fond sombre
+      overflow: 'hidden'
+    }}>
+      {/* Conteneur de la scène */}
       <div 
-        className="scene-background"
         style={{
           position: 'relative',
-          width: '100vw',
-          height: '100vh',
+          width: sceneDimensions.width,
+          height: sceneDimensions.height,
           backgroundImage: `url(${scene.background})`,
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           backgroundRepeat: 'no-repeat',
-          
-          // Optimisations pixel art pour le background
-          imageRendering: 'pixelated',
+          imageRendering: 'pixelated', // Important pour pixel art
         }}
       >
-        {/* Rendu des objets interactifs */}
+        {/* Objets interactifs */}
         {Object.entries(scene.interactiveObjects).map(([objectId, config]) => (
-          <PixelArtSprite
+          <InteractiveSprite
             key={objectId}
+            objectId={objectId}
             config={config}
+            sceneDimensions={sceneDimensions}
+            deviceScale={deviceInfo.scale}
             isHovered={hoveredObject === objectId}
             isActive={activeObject === objectId}
-            onClick={() => handleObjectClick(objectId)}
-            onTouchStart={() => setHoveredObject(objectId)}
+            onHover={handleObjectHover}
+            onClick={handleObjectClick}
           />
         ))}
-        
-        {/* Overlay d'informations de scène */}
-        <div 
-          className="scene-info"
-          style={{
-            position: 'absolute',
-            top: '20px',
-            left: '20px',
-            background: 'rgba(0, 0, 0, 0.8)',
-            color: 'white',
-            padding: '0.5rem 1rem',
-            borderRadius: '8px',
-            fontFamily: 'Press Start 2P, cursive',
-            fontSize: '0.6rem',
-            zIndex: 100,
-          }}
-        >
-          📍 {scene.name}
-        </div>
         
         {/* Bouton retour pour les sous-scènes */}
         {currentScene !== 'kitchen' && (
@@ -92,88 +158,152 @@ export default function SceneManager({ onSceneTransition }: SceneManagerProps) {
             onClick={() => setCurrentScene('kitchen')}
             style={{
               position: 'absolute',
-              top: '20px',
-              right: '20px',
+              top: '5%',
+              right: '5%',
               background: 'rgba(220, 53, 69, 0.9)',
               color: 'white',
               border: 'none',
               borderRadius: '8px',
-              padding: '0.8rem 1.2rem',
+              padding: '10px 15px',
               cursor: 'pointer',
               fontFamily: 'Press Start 2P, cursive',
-              fontSize: '0.8rem',
+              fontSize: '12px',
               zIndex: 100,
-              
-              // Style pixel art
-              imageRendering: 'pixelated',
             }}
           >
             ← Retour
           </button>
         )}
-        
-        {/* Instructions pour l'utilisateur */}
-        <div 
-          className="scene-instructions"
-          style={{
-            position: 'absolute',
-            bottom: '20px',
-            left: '50%',
-            transform: 'translateX(-50%)',
-            background: 'rgba(0, 0, 0, 0.8)',
-            color: 'white',
-            padding: '1rem 2rem',
-            borderRadius: '12px',
-            fontFamily: 'Press Start 2P, cursive',
-            fontSize: '0.7rem',
-            textAlign: 'center',
-            zIndex: 100,
-            maxWidth: '90%',
-          }}
-        >
-          {hoveredObject ? (
-            <>🎯 Cliquez sur <strong>{hoveredObject}</strong> pour interagir</>
-          ) : (
-            <>🖱️ Survolez ou touchez les objets pour les découvrir</>
-          )}
-        </div>
       </div>
       
-      {/* CSS embarqué pour les optimisations pixel art */}
-      <style jsx>{`
-        .scene-container {
-          overflow: hidden;
-          position: relative;
-        }
-        
-        .scene-background {
-          /* Désactiver l'anti-aliasing pour pixel art */
-          image-rendering: -moz-crisp-edges;
-          image-rendering: -webkit-crisp-edges;
-          image-rendering: pixelated;
-          image-rendering: crisp-edges;
-        }
-        
-        /* Optimisations mobile pour pixel art */
-        @media (max-width: 768px) {
-          .scene-info {
-            font-size: 0.5rem;
-            padding: 0.4rem 0.8rem;
-          }
-          
-          .scene-instructions {
-            font-size: 0.6rem;
-            padding: 0.8rem 1.5rem;
-          }
-        }
-        
-        /* Respecter les préférences d'accessibilité */
-        @media (prefers-reduced-motion: reduce) {
-          .scene-background {
-            animation: none;
-          }
-        }
-      `}</style>
+      {/* Debug info en développement */}
+      {process.env.NODE_ENV === 'development' && (
+        <div style={{
+          position: 'fixed',
+          top: 10,
+          left: 10,
+          background: 'rgba(0,0,0,0.8)',
+          color: 'white',
+          padding: '10px',
+          borderRadius: '5px',
+          fontSize: '12px',
+          fontFamily: 'monospace'
+        }}>
+          <div>Scène: {currentScene}</div>
+          <div>Appareil: {deviceInfo.type}</div>
+          <div>Échelle: {deviceInfo.scale}x</div>
+          <div>Dimensions: {sceneDimensions.width}x{sceneDimensions.height}</div>
+          {hoveredObject && <div>Hover: {hoveredObject}</div>}
+        </div>
+      )}
     </div>
+  );
+}
+
+// Composant pour un sprite interactif individuel
+interface InteractiveSpriteProps {
+  objectId: string;
+  config: AsepriteSpriteConfig;
+  sceneDimensions: { width: number; height: number };
+  deviceScale: number;
+  isHovered: boolean;
+  isActive: boolean;
+  onHover: (objectId: string, isHovering: boolean) => void;
+  onClick: (objectId: string) => void;
+}
+
+function InteractiveSprite({
+  objectId,
+  config,
+  sceneDimensions,
+  deviceScale,
+  isHovered,
+  isActive,
+  onHover,
+  onClick
+}: InteractiveSpriteProps) {
+  const [currentFrame, setCurrentFrame] = useState(0);
+
+  // Animation des frames
+  useEffect(() => {
+    if (!config.frameCount || config.frameCount <= 1) return;
+    if (!isHovered && !isActive) {
+      setCurrentFrame(0);
+      return;
+    }
+
+    const fps = config.frameRate || 8;
+    const interval = setInterval(() => {
+      setCurrentFrame(frame => (frame + 1) % (config.frameCount || 1));
+    }, 1000 / fps);
+
+    return () => clearInterval(interval);
+  }, [isHovered, isActive, config.frameCount, config.frameRate]);
+
+  // Choix du sprite selon l'état
+  const getSpriteUrl = () => {
+    if (isActive) return config.active;
+    if (isHovered) return config.hover;
+    return config.base;
+  };
+
+  // Position et taille calculées
+  const position = config.scenePosition;
+  const touchArea = config.touchArea || position;
+  
+  const spriteStyle = {
+    position: 'absolute' as const,
+    left: `${position.x}%`,
+    top: `${position.y}%`,
+    width: `${position.width}%`,
+    height: `${position.height}%`,
+    backgroundImage: `url(${getSpriteUrl()})`,
+    backgroundSize: 'contain',
+    backgroundRepeat: 'no-repeat',
+    backgroundPosition: 'center',
+    imageRendering: 'pixelated' as const,
+    cursor: 'pointer',
+    transition: isActive ? 'transform 0.1s ease' : 'transform 0.2s ease',
+    transform: isActive ? 'scale(0.95)' : isHovered ? 'scale(1.05)' : 'scale(1)',
+  };
+
+  // Zone tactile plus grande
+  const touchStyle = {
+    position: 'absolute' as const,
+    left: `${touchArea.x}%`,
+    top: `${touchArea.y}%`,
+    width: `${touchArea.width}%`,
+    height: `${touchArea.height}%`,
+    cursor: 'pointer',
+    // Debug: bordure visible en développement
+    ...(process.env.NODE_ENV === 'development' && {
+      border: '1px dashed rgba(255,0,0,0.3)'
+    })
+  };
+
+  return (
+    <>
+      {/* Sprite visuel */}
+      <div style={spriteStyle} />
+      
+      {/* Zone tactile interactive */}
+      <div
+        style={touchStyle}
+        onMouseEnter={() => onHover(objectId, true)}
+        onMouseLeave={() => onHover(objectId, false)}
+        onTouchStart={() => onHover(objectId, true)}
+        onTouchEnd={() => onHover(objectId, false)}
+        onClick={() => onClick(objectId)}
+        role="button"
+        aria-label={`Interagir avec ${objectId}`}
+        tabIndex={0}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            onClick(objectId);
+          }
+        }}
+      />
+    </>
   );
 }

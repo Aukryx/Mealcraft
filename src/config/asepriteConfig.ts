@@ -1,5 +1,5 @@
 // Configuration adaptée pour Aseprite + système de scènes
-// Optimisé pour pixel art avec animations hover
+// Optimisé pour mobile/tablette avec pixel art et animations hover
 
 export interface AsepriteSpriteConfig {
   base: string;           // Sprite normal  
@@ -7,20 +7,26 @@ export interface AsepriteSpriteConfig {
   active: string;         // État sélectionné
   disabled?: string;      // État désactivé
   
-  // Spécifique pixel art
-  pixelScale: number;     // Facteur de scale (4x, 6x)
+  // Spécifique pixel art pour mobile/tablette
+  pixelScale: number;     // Facteur de scale adaptatif (mobile: 3x, tablette: 4x, desktop: 6x)
   frameCount?: number;    // Nombre de frames si animé
   frameRate?: number;     // FPS pour animations
   
   // Dimensions en pixels du sprite original Aseprite
   sourceSize: { width: number; height: number };
   
-  // Position sur la scène (en pourcentages)
+  // Position sur la scène (en pourcentages pour responsive)
   scenePosition: { x: number; y: number; width: number; height: number };
+  
+  // Zone tactile élargie pour mobile
+  touchArea?: { x: number; y: number; width: number; height: number };
+  
+  // Feedback haptique pour mobile
+  hapticFeedback?: 'light' | 'medium' | 'heavy';
 }
 
 export interface SceneConfig {
-  background: string;     // PNG de la scène principale
+  background: string;     // PNG de la scène créée avec Aseprite
   name: string;
   
   // Objets interactifs sur cette scène
@@ -28,6 +34,16 @@ export interface SceneConfig {
   
   // Transitions vers d'autres scènes
   transitions: Record<string, string>; // objectId → sceneId
+  
+  // Dimensions recommandées pour la scène (mobile first)
+  dimensions: {
+    mobile: { width: number; height: number };    // Portrait 390x844 (iPhone)
+    tablet: { width: number; height: number };    // 768x1024 (iPad)
+    desktop: { width: number; height: number };   // 1920x1080
+  };
+  
+  // Échelle de base pour cette scène
+  baseScale: number;
 }
 
 // Configuration des scènes
@@ -37,16 +53,28 @@ export const MEALCRAFT_SCENES: Record<string, SceneConfig> = {
     background: '/scenes/kitchen-main.png',
     name: 'Cuisine Principale',
     
+    // Dimensions optimisées pour mobile first
+    dimensions: {
+      mobile: { width: 390, height: 844 },   // iPhone 14
+      tablet: { width: 768, height: 1024 },  // iPad
+      desktop: { width: 1920, height: 1080 } // Desktop
+    },
+    baseScale: 3, // Échelle de base pour pixel art mobile
+    
     interactiveObjects: {
       calendar: {
         base: '/sprites/calendar-idle.png',
         hover: '/sprites/calendar-hover.png',    // Peut être animé !
         active: '/sprites/calendar-active.png',
         
-        pixelScale: 4,
+        pixelScale: 3,        // Mobile first
         frameCount: 1,        // Static pour base/active
         sourceSize: { width: 48, height: 48 },
-        scenePosition: { x: 8, y: 12, width: 12, height: 12 }
+        scenePosition: { x: 8, y: 12, width: 12, height: 12 },
+        
+        // Zone tactile plus large pour mobile
+        touchArea: { x: 6, y: 10, width: 16, height: 16 },
+        hapticFeedback: 'light'
       },
       
       cookbook: {
@@ -54,11 +82,14 @@ export const MEALCRAFT_SCENES: Record<string, SceneConfig> = {
         hover: '/sprites/cookbook-hover.png',    // Pages qui bougent
         active: '/sprites/cookbook-active.png',
         
-        pixelScale: 4,
+        pixelScale: 3,        // Mobile optimized
         frameCount: 4,        // Animation hover 4 frames
         frameRate: 8,         // 8 FPS pour animation douce
         sourceSize: { width: 40, height: 60 },
-        scenePosition: { x: 78, y: 18, width: 16, height: 20 }
+        scenePosition: { x: 78, y: 18, width: 16, height: 20 },
+        
+        touchArea: { x: 75, y: 15, width: 22, height: 26 },
+        hapticFeedback: 'medium'
       },
       
       fridge: {
@@ -125,6 +156,14 @@ export const MEALCRAFT_SCENES: Record<string, SceneConfig> = {
     background: '/scenes/fridge-open.png',
     name: 'Intérieur du Frigo',
     
+    // Dimensions identiques à la scène principale
+    dimensions: {
+      mobile: { width: 390, height: 844 },
+      tablet: { width: 768, height: 1024 },
+      desktop: { width: 1920, height: 1080 }
+    },
+    baseScale: 3,
+    
     interactiveObjects: {
       close_button: {
         base: '/sprites/close-btn-idle.png',
@@ -159,27 +198,69 @@ export const MEALCRAFT_SCENES: Record<string, SceneConfig> = {
   // ... autres scènes (planning, recipes, etc.)
 };
 
-// Utilitaires pour Aseprite
+// Utilitaires pour Aseprite - Optimisé Mobile/Tablette
 export const ASEPRITE_SETTINGS = {
-  // Palette recommandée pour cohérence
+  // Palette recommandée pour cohérence (adaptée aux écrans mobiles)
   palette: [
     '#000000', '#1a1c2c', '#5d275d', '#b13e53', '#ef7d57',
     '#ffcd75', '#a7f070', '#38b764', '#257179', '#29366f',
     '#3b5dc9', '#41a6f6', '#73eff7', '#f4f4f4', '#94b0c2', '#566c86'
   ],
   
-  // Export settings
+  // Export settings pour différentes tailles d'écran
   export: {
     format: 'PNG',
-    scale: 4,               // 4x pour la plupart des sprites
-    preservePixels: true,   // Nearest neighbor
-    transparentBackground: true
+    mobile: {
+      scale: 3,             // 3x pour mobile (performance)
+      maxSize: 512,         // Limite taille fichier
+    },
+    tablet: {
+      scale: 4,             // 4x pour tablette
+      maxSize: 1024,
+    },
+    desktop: {
+      scale: 6,             // 6x pour desktop
+      maxSize: 2048,
+    },
+    preservePixels: true,   // Nearest neighbor obligatoire
+    transparentBackground: true,
+    compression: 'medium'   // Équilibre qualité/taille
   },
   
-  // Animation settings
+  // Animation settings optimisées pour mobile
   animation: {
-    defaultFPS: 8,
-    hoverFPS: 12,          // Plus fluide pour interactions
-    maxFrames: 16          // Limite pour performance
+    defaultFPS: 6,          // Réduit pour économiser batterie
+    hoverFPS: 10,           // Assez fluide pour interactions tactiles
+    activeFPS: 12,          // Plus rapide pour feedback immédiat
+    maxFrames: 12,          // Limite pour performance mobile
+    
+    // Optimisations mobile
+    preloadFrames: true,    // Précharge pour éviter lag
+    pauseOnInactive: true,  // Économie batterie
+    reducedMotion: true     // Respect préférences accessibilité
+  },
+  
+  // Dimensions recommandées pour création dans Aseprite
+  canvasSizes: {
+    scene: {
+      mobile: { width: 130, height: 281 },   // 390/3 x 844/3 en pixels
+      tablet: { width: 192, height: 256 },   // 768/4 x 1024/4 en pixels
+      desktop: { width: 320, height: 180 }   // 1920/6 x 1080/6 en pixels
+    },
+    sprites: {
+      small: { width: 16, height: 16 },      // Petits objets
+      medium: { width: 32, height: 32 },     // Objets moyens
+      large: { width: 48, height: 48 },      // Gros objets
+      xlarge: { width: 64, height: 64 }      // Très gros objets
+    }
+  },
+  
+  // Guidelines pour création Aseprite
+  guidelines: {
+    pixelPerfect: true,
+    antialiasing: false,
+    dithering: 'minimal',
+    contrast: 'high',       // Important pour lisibilité mobile
+    saturation: 'medium'    // Équilibre pour différents écrans
   }
 };

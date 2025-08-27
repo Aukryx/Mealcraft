@@ -166,7 +166,7 @@ describe('IngredientIdService', () => {
       
       // Ne devrait pas lever d'erreur
       expect(() => {
-        const { ingredientIdService: newService } = require('../ingredientIdService');
+        ingredientIdService.getNumericId('test');
       }).not.toThrow();
     });
 
