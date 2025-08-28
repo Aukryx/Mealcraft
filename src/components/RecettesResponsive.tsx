@@ -78,6 +78,14 @@ function filtrerRecettes(recettes: Recette[], filtres: Filtres, stock: Array<{ i
       return false;
     }
 
+    // Filtre par régimes alimentaires
+    if (filtres.regimes.length > 0) {
+      const recetteCompatible = filtres.regimes.every(regime => 
+        recette.tags && recette.tags.includes(regime)
+      );
+      if (!recetteCompatible) return false;
+    }
+
     // Filtre "Recettes faisables seulement"
     if (filtres.showOnlyFeasible) {
       const recetteRealisable = recette.ingredients.every(ingredient => {
