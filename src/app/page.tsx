@@ -10,7 +10,6 @@ import KitchenInstructions from '../components/KitchenInstructions';
 import OnboardingFlow from '../components/OnboardingFlow';
 import UserProfileModal from '../components/UserProfileModal';
 import SmartStockManager from '../components/SmartStockManager';
-import ResponsiveKitchenSprite from '../components/ResponsiveKitchenSprite';
 import { CozyCookingMode } from '../components/CozyCookingMode';
 import { categoriesRefrigerees, categoriesNonRefrigerees } from '../data/kitchenMeta';
 import { useUserProfile } from '../hooks/useUserProfile';
@@ -186,24 +185,15 @@ export default function Home() {
           </div>
         )}
         
-        {/* Objets interactifs avec sprites */}
-        
-        {/* Planning avec sprite adaptatif */}
-        <ResponsiveKitchenSprite
-          objectType="calendar"
-          isActive={activeObject === 'calendar'}
-          onClick={() => setActiveObject('calendar')}
-        />
-        
-        {/* Fallback pour les objets sans sprites encore */}
+        {/* Objets interactifs */}
         <KitchenObject
           icon={<div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>📅</div>}
-          label="Planning (Old)"
+          label="Planning"
           subLabel={today.toLocaleString('fr-FR', { month: 'short' }) + ' ' + currentYear}
           style={{
             position: 'absolute',
             top: '10%',
-            right: '5%',
+            left: '5%',
             width: '200px',
             height: '150px',
             background: 'linear-gradient(135deg, #fff8e1, #f5f5dc)',
