@@ -1,9 +1,5 @@
 ### Cook Book
 
--Dans le livre de cuisine, une icone de poele apparait sur la droite de la recette que j'hover, mais qui n'appparait pas sur la page de gauche.
--Le filtre régimes alimentaires ne fonctionne pas.
--la barre de recherche dans les filtes se déséléctionne à chaque lettre, forçant à appuyer sur le champ à chaque lettre.
--la case Seulement les recettes faisables fonctionne mais son état ne se met pas à jour, elle apparait comme non coché aprs avoir clické dessus et ne peut être décoché, ce qui force la réinitialisation.
 -Le bouton enregistrer une recette ne fonctionne pas quand on veut ajouter une nouvelle recette
 -Gros risque de bugs si on laisse le choix à l'utilisateur sur le nom et les unitées des ingrédients de la recette à ajouter (optionnels et obligatoires) - à retirer
 -Sur téléphone, en affichage vertical, je ne peux pas cliquer sur une recette pour en voir les détails. Ni ajouter de recette.

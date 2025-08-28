@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { Recette } from "../data/recettesDeBase";
 import StockSummary from "./StockSummary";
 import { useStock } from "../hooks/useStock";
@@ -106,6 +106,14 @@ export default function RecettesResponsive({ recettes, onEdit, onDelete, onAdd, 
   const [filtres, setFiltres] = useState<Filtres>(filtresInitiaux);
   const [showFilters, setShowFilters] = useState(false);
   const { stock } = useStock(); // Utilisation du hook stock
+  
+  // Référence pour maintenir le focus sur l'input de recherche
+  const searchInputRef = useRef<HTMLInputElement>(null);
+
+  // Gestionnaire de recherche mémorisé pour éviter les re-renders
+  const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    setFiltres(prev => ({ ...prev, recherche: e.target.value }));
+  }, []);
 
   // Appliquer les filtres
   const recettesFiltrees = filtrerRecettes(recettes, filtres, stock);
@@ -133,31 +141,31 @@ export default function RecettesResponsive({ recettes, onEdit, onDelete, onAdd, 
     r.ingredients.map(ing => ing.ingredientId)
   ))].sort();
 
-  const toggleCategorie = (cat: string) => {
+  const resetFiltres = useCallback(() => {
+    setFiltres(filtresInitiaux);
+    setPage(0);
+  }, []);
+
+  const toggleCategorie = useCallback((cat: string) => {
     setFiltres(prev => ({
       ...prev,
       categories: prev.categories.includes(cat) 
         ? prev.categories.filter(c => c !== cat)
         : [...prev.categories, cat]
     }));
-  };
+  }, []);
 
-  const toggleRegime = (regime: string) => {
-  setFiltres(prev => ({
-    ...prev,
-    regimes: prev.regimes.includes(regime) 
-      ? prev.regimes.filter(r => r !== regime)
-      : [...prev.regimes, regime]
-  }));
-};
+  const toggleRegime = useCallback((regime: string) => {
+    setFiltres(prev => ({
+      ...prev,
+      regimes: prev.regimes.includes(regime) 
+        ? prev.regimes.filter(r => r !== regime)
+        : [...prev.regimes, regime]
+    }));
+  }, []);
 
-  const resetFiltres = () => {
-    setFiltres(filtresInitiaux);
-    setPage(0);
-  };
-
-  // Interface des filtres
-  const FilterPanel = () => (
+  // Interface des filtres mémorisée
+  const FilterPanel = useMemo(() => (
     <div style={{
       background: "#f8f3d4",
       border: "2px solid #bfa76a",
@@ -192,9 +200,10 @@ export default function RecettesResponsive({ recettes, onEdit, onDelete, onAdd, 
             Recherche :
           </label>
           <input
+            ref={searchInputRef}
             type="text"
             value={filtres.recherche}
-            onChange={(e) => setFiltres(prev => ({ ...prev, recherche: e.target.value }))}
+            onChange={handleSearchChange}
             placeholder="Nom de la recette..."
             style={{
               width: "100%", padding: "0.5rem", border: "1px solid #bfa76a",
@@ -342,7 +351,7 @@ export default function RecettesResponsive({ recettes, onEdit, onDelete, onAdd, 
         {recettesFiltrees.length} recette{recettesFiltrees.length > 1 ? 's' : ''} trouvée{recettesFiltrees.length > 1 ? 's' : ''}
       </div>
     </div>
-  );
+  ), [filtres, recettesFiltrees.length, isMobile, categoriesUniques, regimesUniques, handleSearchChange, toggleCategorie, toggleRegime, resetFiltres, setShowFilters]);
 
   // Affichage mobile (liste verticale)
   if (isMobile) {
@@ -377,7 +386,7 @@ export default function RecettesResponsive({ recettes, onEdit, onDelete, onAdd, 
           🔍 Filtres {Object.values(filtres).some(v => Array.isArray(v) ? v.length > 0 : v !== null && v !== "") && "●"}
         </button>
 
-        {showFilters && <FilterPanel />}
+        {showFilters && FilterPanel}
 
         <div
           style={{
@@ -581,7 +590,7 @@ export default function RecettesResponsive({ recettes, onEdit, onDelete, onAdd, 
           🔍 Filtres {Object.values(filtres).some(v => Array.isArray(v) ? v.length > 0 : v !== null && v !== "") && "●"}
         </button>
         
-        {showFilters && <FilterPanel />}
+        {showFilters && FilterPanel}
       </div>
 
       <div
