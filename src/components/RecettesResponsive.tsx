@@ -539,11 +539,6 @@ export default function RecettesResponsive({ recettes, onEdit, onDelete, onAdd, 
   // Affichage desktop (livre)
   return (
     <>
-      <style jsx>{`
-        .recette-card:hover .cozy-cook-btn {
-          opacity: 1 !important;
-        }
-      `}</style>
       <div
         style={{
           width: "100%",
@@ -711,47 +706,6 @@ export default function RecettesResponsive({ recettes, onEdit, onDelete, onAdd, 
                   >
                     {recette.ingredients.map(ing => `${ing.quantite} ${ing.unite} ${ing.ingredientId}`).join(", ")}
                   </div>
-                  
-                  {/* Bouton Cuisiner cozy */}
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      if (onStartCooking) {
-                        onStartCooking(recette);
-                      }
-                    }}
-                    style={{
-                      position: 'absolute',
-                      bottom: '8px',
-                      right: '8px',
-                      background: 'linear-gradient(135deg, #ffb6c1 0%, #ffc0cb 100%)',
-                      border: '2px solid #8b4513',
-                      borderRadius: '8px',
-                      color: '#8b4513',
-                      fontFamily: 'Press Start 2P, cursive',
-                      fontSize: '0.5rem',
-                      padding: '0.4rem 0.6rem',
-                      cursor: 'pointer',
-                      boxShadow: '2px 2px 0px #cd853f',
-                      opacity: 0,
-                      transition: 'all 0.2s ease',
-                      textShadow: '1px 1px 0 #fff'
-                    }}
-                    className="cozy-cook-btn"
-                    title="Cuisiner cette recette"
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.background = 'linear-gradient(135deg, #ffc0cb 0%, #ffb6c1 100%)';
-                      e.currentTarget.style.transform = 'translate(1px, 1px)';
-                      e.currentTarget.style.boxShadow = '1px 1px 0px #cd853f';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.background = 'linear-gradient(135deg, #ffb6c1 0%, #ffc0cb 100%)';
-                      e.currentTarget.style.transform = 'translate(0, 0)';
-                      e.currentTarget.style.boxShadow = '2px 2px 0px #cd853f';
-                    }}
-                  >
-                    🍳
-                  </button>
                 </div>
               ))}
             </div>
