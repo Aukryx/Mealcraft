@@ -3,6 +3,8 @@ type Props = {
   onStartCooking?: (recette: Recette) => void;
 };
 import React from "react";
+import IngredientSearch from "../IngredientSearch";
+import { ingredientIdService } from "../../services/ingredientIdService";
 import "./custom-scrollbar.css";
 import { useState } from "react";
 import { useRecettes } from "../../hooks/useRecettes";
@@ -370,33 +372,40 @@ export default function CookBook({ onClose, onStartCooking }: Props) {
               <span></span>
             </div>
             {ingredients.map((ing, idx) => (
-              <div key={idx} style={{ display: 'grid', gridTemplateColumns: '2fr 1.1fr 1fr 32px', gap: '8px', marginBottom: 4, alignItems: 'center' }}>
-                <input 
-                  value={ing.ingredientId} 
-                  onChange={e => handleIngredientChange(idx, 'ingredientId', e.target.value)} 
-                  placeholder="Nom ou id" 
-                  style={{ width: '100%', padding: '6px 8px', border: '1px solid #bfa76a', borderRadius: 4, fontSize: 14 }} 
-                />
-                <input 
-                  type="number" 
-                  min="0" 
-                  value={ing.quantite} 
-                  onChange={e => handleIngredientChange(idx, 'quantite', e.target.value)} 
-                  placeholder="Quantité" 
-                  style={{ width: '100%', padding: '6px 8px', border: '1px solid #bfa76a', borderRadius: 4, fontSize: 14 }} 
-                />
-                <input 
-                  value={ing.unite} 
-                  onChange={e => handleIngredientChange(idx, 'unite', e.target.value)} 
-                  placeholder="Unité" 
-                  style={{ width: '100%', padding: '6px 8px', border: '1px solid #bfa76a', borderRadius: 4, fontSize: 14 }} 
-                />
-                <button 
-                  type="button" 
-                  onClick={() => removeIngredient(idx)} 
-                  style={{ color: '#dc3545', background: 'none', border: 'none', fontSize: 18, cursor: 'pointer' }}
-                >🗑️</button>
-              </div>
+                <div key={idx} style={{ display: 'grid', gridTemplateColumns: '2fr 1.1fr 1fr 32px', gap: '8px', marginBottom: 4, alignItems: 'center' }}>
+                  <IngredientSearch
+                    value={ing.ingredientId ? ingredientIdService.getTextId(ingredientIdService.getNumericId(ing.ingredientId)) || ing.ingredientId : ""}
+                    onSelect={(ingredient: { id: string; numId: number; nom: string }) => {
+                      setIngredients(ings => ings.map((ingr, i) => i === idx ? {
+                        ...ingr,
+                        ingredientId: ingredient.id,
+                        unite: ingredientIdService.getUnitForId(ingredient.id) || '',
+                      } : ingr));
+                      markDirty();
+                    }}
+                    placeholder="Rechercher un ingrédient..."
+                    disabled={false}
+                  />
+                  <input 
+                    type="number" 
+                    min="0" 
+                    value={ing.quantite} 
+                    onChange={e => handleIngredientChange(idx, 'quantite', e.target.value)} 
+                    placeholder="Quantité" 
+                    style={{ width: '100%', padding: '6px 8px', border: '1px solid #bfa76a', borderRadius: 4, fontSize: 14 }} 
+                  />
+                  <input 
+                    value={ing.unite} 
+                    disabled
+                    placeholder="Unité" 
+                    style={{ width: '100%', padding: '6px 8px', border: '1px solid #bfa76a', borderRadius: 4, fontSize: 14, background: '#eee' }} 
+                  />
+                  <button 
+                    type="button" 
+                    onClick={() => removeIngredient(idx)} 
+                    style={{ color: '#dc3545', background: 'none', border: 'none', fontSize: 18, cursor: 'pointer' }}
+                  >🗑️</button>
+                </div>
             ))}
             <button 
               type="button" 
@@ -416,11 +425,18 @@ export default function CookBook({ onClose, onStartCooking }: Props) {
             </div>
             {ingredientsOptionnels.map((ing, idx) => (
               <div key={idx} style={{ display: 'grid', gridTemplateColumns: '2fr 1.1fr 1fr 32px', gap: '8px', marginBottom: 4, alignItems: 'center' }}>
-                <input 
-                  value={ing.ingredientId} 
-                  onChange={e => handleIngredientOptChange(idx, 'ingredientId', e.target.value)} 
-                  placeholder="Nom ou id" 
-                  style={{ width: '100%', padding: '6px 8px', border: '1px solid #bfa76a', borderRadius: 4, fontSize: 14 }} 
+                <IngredientSearch
+                  value={ing.ingredientId ? ingredientIdService.getTextId(ingredientIdService.getNumericId(ing.ingredientId)) || ing.ingredientId : ""}
+                  onSelect={(ingredient: { id: string; numId: number; nom: string }) => {
+                    setIngredientsOptionnels(ings => ings.map((ingr, i) => i === idx ? {
+                      ...ingr,
+                      ingredientId: ingredient.id,
+                      unite: ingredientIdService.getUnitForId(ingredient.id) || '',
+                    } : ingr));
+                    markDirty();
+                  }}
+                  placeholder="Rechercher un ingrédient..."
+                  disabled={false}
                 />
                 <input 
                   type="number" 
@@ -432,9 +448,9 @@ export default function CookBook({ onClose, onStartCooking }: Props) {
                 />
                 <input 
                   value={ing.unite} 
-                  onChange={e => handleIngredientOptChange(idx, 'unite', e.target.value)} 
+                  disabled
                   placeholder="Unité" 
-                  style={{ width: '100%', padding: '6px 8px', border: '1px solid #bfa76a', borderRadius: 4, fontSize: 14 }} 
+                  style={{ width: '100%', padding: '6px 8px', border: '1px solid #bfa76a', borderRadius: 4, fontSize: 14, background: '#eee' }} 
                 />
                 <button 
                   type="button" 

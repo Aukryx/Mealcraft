@@ -3,12 +3,14 @@ import { useIngredientSearch, ingredientIdService } from '../services/ingredient
 
 type IngredientSearchProps = {
   onSelect: (ingredient: { id: string; numId: number; nom: string }) => void;
+  value?: string;
   placeholder?: string;
   disabled?: boolean;
 };
 
 const IngredientSearch: React.FC<IngredientSearchProps> = ({ 
   onSelect, 
+  value = "",
   placeholder = "Rechercher un ingrédient...",
   disabled = false 
 }) => {
@@ -83,7 +85,7 @@ const IngredientSearch: React.FC<IngredientSearchProps> = ({
       <input
         ref={inputRef}
         type="text"
-        value={searchQuery}
+        value={searchQuery || value}
         onChange={handleInputChange}
         onKeyDown={handleKeyDown}
         onFocus={() => searchQuery.length >= 2 && setShowResults(true)}
@@ -95,7 +97,8 @@ const IngredientSearch: React.FC<IngredientSearchProps> = ({
           border: '2px solid #8b7355',
           borderRadius: '4px',
           fontFamily: '"Press Start 2P", monospace',
-          fontSize: '0.6rem',
+          fontSize: value ? '1.1rem' : '0.6rem',
+          fontWeight: value ? 'bold' : 'normal',
           background: disabled ? '#f5f5f5' : 'white',
           color: disabled ? '#999' : '#333',
           outline: 'none'
@@ -139,6 +142,7 @@ const IngredientSearch: React.FC<IngredientSearchProps> = ({
           ) : (
             searchResults.map((ingredient, index) => (
               <button
+                type="button"
                 key={ingredient.id}
                 onClick={() => handleSelect(ingredient)}
                 style={{

@@ -66,13 +66,12 @@ class IngredientIdService {
   // Rechercher des ingrédients par nom
   searchIngredients(query: string, maxResults = 10): Array<{ id: string; numId: number; nom: string }> {
     const results: Array<{ id: string; numId: number; nom: string }> = [];
-    
     // Import dynamique pour éviter les dépendances circulaires
     import('../data/recettesDeBase').then(({ ingredientsDeBase }) => {
       ingredientsDeBase
-        .filter(ing => ing.nom.toLowerCase().includes(query.toLowerCase()))
+        .filter((ing: any) => ing.nom.toLowerCase().includes(query.toLowerCase()))
         .slice(0, maxResults)
-        .forEach(ing => {
+        .forEach((ing: any) => {
           results.push({
             id: ing.id,
             numId: this.getNumericId(ing.id),
@@ -80,8 +79,15 @@ class IngredientIdService {
           });
         });
     });
-    
     return results;
+  }
+
+  public getUnitForId(id: string): string | undefined {
+    // Import statique car la base d'ingrédients ne change pas en runtime
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const { ingredientsDeBase } = require('../data/recettesDeBase');
+    const found = ingredientsDeBase.find((ing: { id: string; unite?: string }) => ing.id === id);
+    return found && found.unite ? found.unite : undefined;
   }
 
   // Obtenir tous les ingrédients avec leurs numéros
